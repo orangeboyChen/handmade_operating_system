@@ -1,3 +1,7 @@
+//basic
+#define true 1
+#define false 0
+
 //color
 #define COL8_000000 0
 #define COL8_FF0000 1
@@ -58,36 +62,56 @@ struct MemoryManager *getMemoryManager();
 void logger(char *c, unsigned int y);
 
 //sheet.c
-#define MEMMAN_ADDR 0x003c0000
-#define SHEET_MAX 512
-typedef struct SheetManager
-{
-    struct Sheet *topSheet;
-    struct Sheet *bottomSheet;
-    struct Sheet *sheetStore[SHEET_MAX];
-    struct Sheet *fatherSheet;
-};
 
-typedef struct Sheet
+#define SHEET_MAX 512
+struct Sheet
 {
+    //自身基本属性
     short width, height;
     short x, y;
-    int isUsing;
-    struct SheetManager *sheetManager;
-    struct Sheet *nextSheet, *previousSheet; //nextSheet下一层，previousSheet上一层
     char *vram;
+
+    //对于兄弟图层
+    struct Sheet *fatherSheet;
+    struct Sheet *nextSheet, *previousSheet; //nextSheet下一层，previousSheet上一层
     int index;
+
+    //对于子图层
+    struct Sheet *topSheet;
+    struct Sheet *bottomSheet;
+    char *indexMap;
+    char *updateMap;
+
+    //子图层内存管理
+    struct Sheet *sheetStore[SHEET_MAX];
+
+    // struct SheetManager *subSheetManager;
 };
 
-void initRootSheetManager(struct SheetManager *sheetManager);
-void initSheetManager(struct Sheet *fatherSheet, struct SheetManager *sheetManager, short x, short y, unsigned char c);
-struct Sheet *insertSheetToTop(struct SheetManager *sheetManager, short x1, short y1, short width, short height);
-struct Sheet *createSheet(struct SheetManager *sheetManager);
-void releaseSheet(struct SheetManager *sheetManager, struct Sheet *sheet);
+// typedef struct SheetManager
+// {
+//     struct Sheet *topSheet;
+//     struct Sheet *bottomSheet;
+//     struct Sheet sheets[SHEET_MAX];
+//     struct Sheet *fatherSheet;
+// };
+
+// void initRootSheetManager(struct SheetManager **sheetManager);
+// void createSubSheetManager(struct Sheet **fatherSheet);
+// struct Sheet *getUnusedSheetFromSheetManager(struct SheetManager *sheetManager);
+// struct Sheet *createSheetToTop(struct SheetManager **sheetManager, short x1, short y1, short width, short height);
+// void releaseSheet(struct SheetManager *sheetManager, struct Sheet *sheet);
+struct Sheet *initRootSheet();
+struct Sheet *createSubsheetToTop(struct Sheet *fatherSheet, short x, short y, short width, short height);
+struct Sheet *createSubsheetToTopWithVram(struct Sheet *fatherSheet, short x, short y, short width, short height, char *vram);
 void refreshSheet(struct Sheet *sheet);
 void fillVram(struct Sheet *sheet, unsigned char c);
+void setBitInUpdateMap(struct Sheet *sheet, unsigned int index, unsigned int value);
+// void createSubSheetManager(struct Sheet **fatherSheet);
 
 //memory.c
+#define MEMMAN_ADDR 0x003c0000
+// #define MEMMAN_ADDR 0x00400000
 struct MemoryBlock
 {
     unsigned int addrFrom;
@@ -114,3 +138,5 @@ void combineMemoryBlock(struct MemoryManager *memoryManager);
 unsigned int getPreferBlockType(struct MemoryManager *memoryManager, unsigned int size);
 unsigned int getUnusedMemoryTotal(struct MemoryManager *memoryManager);
 int releaseBlock(struct MemoryManager *memoryManager, unsigned int addr);
+struct MemoryBlock *cutBlock(struct MemoryBlock **lastReturnBlock, unsigned int fromAddr, int toAddr);
+unsigned int getMaxBlockTypeInMemory(struct MemoryManager *memoryManager, unsigned int size);

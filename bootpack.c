@@ -1,5 +1,6 @@
 #include "bootpack.h"
 #include <stdio.h>
+#include <string.h>
 
 void initPalette(void)
 {
@@ -200,21 +201,22 @@ void HariMain(void)
 	struct MemoryManager *memoryManager = getMemoryManager();
 	initMemoryManage(memoryManager);
 
-	// struct SheetManager *sheetManager = allocaMemory(memoryManager, sizeof(struct SheetManager));
-	// initRootSheetManager(sheetManager);
+	// struct SheetManager *sheetManager;
+	struct Sheet *rootSheet = initRootSheet();
 
-	unsigned int addr = allocaMemory(memoryManager, 2000000000);
+	char s4[32];
+	sprintf(s4, "%u", rootSheet->height);
+	putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s4);
 
-	(struct Sheet *)allocaMemory(getMemoryManager(), sizeof(struct Sheet));
-	// releaseBlock(memoryManager, addr);
+	// (struct Sheet *)allocaMemory(getMemoryManager(), sizeof(struct Sheet));
 
 	// char *s;
-	// sprintf(s, "%u %u", memoryManager->firstBlock->isUsing, memoryManager->firstBlock->addrTo);
+	// sprintf(s, "%u %u", addr1, addr2);
 	// fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 48, getBootInfo()->screenX, 48);
 	// putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 48, COL8_FFFFFF, s);
 
-	char *s3;
-	sprintf(s3, "%u M", getUnusedMemoryTotal(memoryManager));
+	char s3[32];
+	sprintf(s3, "%uByte", getUnusedMemoryTotal(memoryManager));
 	putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 32, COL8_FFFFFF, s3);
 
 	while (1)

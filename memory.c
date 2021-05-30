@@ -1,11 +1,12 @@
 #include "bootpack.h"
 #include <stdio.h>
-#define MEMMAN_ADDR 0x003c0000
+#include <string.h>
 
 void initMemoryManage(struct MemoryManager *memoryManager)
 {
 
-    initMemoryManager(memoryManager, 0x00400000, 0xbfffffff);
+    // initMemoryManager(memoryManager, 0x00400000, 0xbfffffff);
+    initMemoryManager(memoryManager, 0x00400000, 0x00400000 + 16 * 1024 * 1024);
 }
 
 void initMemoryManager(struct MemoryManager *memoryManager, unsigned int start, unsigned int end)
@@ -18,7 +19,9 @@ void initMemoryManager(struct MemoryManager *memoryManager, unsigned int start, 
         memoryManager->blocks[i].nextBlock = NULL;
     }
 
-    memoryManager->firstBlock = cutBlock(NULL, start, end);
+    struct MemoryBlock *lastCutBlock = NULL;
+    memoryManager->firstBlock = cutBlock(lastCutBlock, start, end);
+    lastCutBlock->nextBlock = NULL;
 
     // char *s;
     // sprintf(s, "%u %u", memoryManager->firstBlock->addrFrom, memoryManager->firstBlock->addrTo);
@@ -51,15 +54,25 @@ void initMemoryManager(struct MemoryManager *memoryManager, unsigned int start, 
     // memoryManager->firstBlock = &memoryManager->blocks[0];
 }
 
-struct MemoryBlock *cutBlock(struct MemoryBlock *nextBlock, unsigned int fromAddr, int toAddr)
+struct MemoryBlock *cutBlock(struct MemoryBlock **lastReturnBlock, unsigned int fromAddr, int toAddr)
 {
-    if (toAddr - fromAddr == 0)
+    if (toAddr - fromAddr + 1 <= 0)
     {
-        return nextBlock;
+        return NULL;
     }
 
     struct MemoryManager *manager = getMemoryManager();
     unsigned int leftMemory = toAddr - fromAddr + 1;
+
+    if (leftMemory == 1)
+    {
+        struct MemoryBlock *block = getUnusedBlock(manager);
+        block->addrFrom = fromAddr;
+        block->addrTo = toAddr;
+        block->blockType = 0;
+        *lastReturnBlock = block;
+        return block;
+    }
 
     struct MemoryBlock *firstBlock = NULL;
     struct MemoryBlock *lastBlock = NULL;
@@ -86,10 +99,14 @@ struct MemoryBlock *cutBlock(struct MemoryBlock *nextBlock, unsigned int fromAdd
 
         int blockType = getMaxBlockTypeInMemory(manager, leftMemory);
 
-        // char *s;
-        // sprintf(s, "%u", leftMemory);
-        // fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 16, getBootInfo()->screenX, 16 * 2);
-        // putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 16, COL8_FFFFFF, s);
+        de++;
+        if (toAddr - fromAddr + 1 == 1 && de == 1)
+        {
+            char s[32];
+            sprintf(s, "%u %u", leftMemory, blockType);
+            fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 0, getBootInfo()->screenX, 16 * 1);
+            putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s);
+        }
 
         struct MemoryBlock *block = getUnusedBlock(manager);
         block->addrFrom = currentFromAddr;
@@ -126,7 +143,13 @@ struct MemoryBlock *cutBlock(struct MemoryBlock *nextBlock, unsigned int fromAdd
         //     break;
         // }
     }
-    lastBlock->nextBlock = nextBlock;
+
+    *lastReturnBlock = lastBlock;
+
+    // char s[32];
+    // sprintf(s, "%u/%u %u", (*lastReturnBlock)->addrFrom, (*lastReturnBlock)->addrTo, (*lastReturnBlock)->requestSize);
+    // fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 0, getBootInfo()->screenX, 16);
+    // putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s);
 
     return firstBlock;
 }
@@ -173,26 +196,47 @@ unsigned int allocaMemory(struct MemoryManager *memoryManager, unsigned int size
     // putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 16, COL8_FFFFFF, s);
 
     unsigned int newAddrFrom = preferBlock->addrTo - size + 1;
+    struct MemoryBlock *lastCutBlock = NULL;
 
-    if (previousBlockOfPreferBlock != NULL)
+    if (size == (1 << preferBlock->blockType))
     {
-        previousBlockOfPreferBlock->nextBlock = cutBlock(preferBlock, preferBlock->addrFrom, newAddrFrom - 1);
+        if (previousBlockOfPreferBlock != NULL)
+        {
+            previousBlockOfPreferBlock->nextBlock = preferBlock;
+        }
+        else
+        {
+            memoryManager->firstBlock = preferBlock;
+        }
     }
     else
     {
-        memoryManager->firstBlock = cutBlock(preferBlock, preferBlock->addrFrom, newAddrFrom - 1);
+        if (previousBlockOfPreferBlock != NULL)
+        {
+            previousBlockOfPreferBlock->nextBlock = cutBlock(&lastCutBlock, preferBlock->addrFrom, newAddrFrom - 1);
+        }
+        else
+        {
+            memoryManager->firstBlock = cutBlock(&lastCutBlock, preferBlock->addrFrom, newAddrFrom - 1);
+        }
+        lastCutBlock->nextBlock = preferBlock;
+        preferBlock->addrFrom = newAddrFrom;
     }
-
-    preferBlock->addrFrom = newAddrFrom;
+    preferBlock->blockType = preferBlockType;
     preferBlock->isUsing = 2;
     preferBlock->requestSize = size;
 
-    combineMemoryBlock(getMemoryManager());
-    // char *s;
-    // sprintf(s, "%u %u %u %u", preferBlock->addrFrom, preferBlock->addrTo, memoryManager->firstBlock->addrFrom, memoryManager->firstBlock->addrTo);
+    // char s[48];
+    // sprintf(s, "%u %u", previousBlockOfPreferBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->addrFrom, previousBlockOfPreferBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->addrTo);
+    // sprintf(s, "%u %u %u %u", preferBlock->addrFrom, preferBlock->addrTo, preferBlock->requestSize, preferBlock->isUsing);
+    // sprintf(s, "%u %u %u", lastCutBlock->addrFrom, lastCutBlock->addrTo, lastCutBlock);
+
     // fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 16, getBootInfo()->screenX, 32);
     // putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 16, COL8_FFFFFF, s);
 
+    // combineMemoryBlock(getMemoryManager());
+
+    memset(preferBlock->addrFrom, 0, size);
     return preferBlock->addrFrom;
 
     // if (preferBlock->blockType == preferBlockType)
@@ -245,73 +289,105 @@ struct MemoryBlock *getUnusedBlock(struct MemoryManager *memoryManager)
 
 void combineMemoryBlock(struct MemoryManager *memoryManager)
 {
+    struct MemoryBlock *previousBlock = NULL;
     struct MemoryBlock *currentBlock = memoryManager->firstBlock;
-    struct MemoryBlock *nextBlock = memoryManager->firstBlock->nextBlock;
 
-    while (1)
+    if (currentBlock->nextBlock == NULL)
     {
-        if (nextBlock == NULL)
-        {
+        return;
+    }
 
-            break;
-        }
+    struct MemoryBlock *pointerBlock = currentBlock->nextBlock;
 
-        if (currentBlock->isUsing == 2)
-        {
-            currentBlock = nextBlock;
-            nextBlock = nextBlock->nextBlock;
-            continue;
-        }
+    if (pointerBlock == NULL)
+    {
+        return;
+    }
 
-        if (nextBlock->isUsing == 2)
+    int de = 0;
+    while (currentBlock != NULL && pointerBlock != NULL)
+    {
+        if (currentBlock->isUsing == 1 && pointerBlock->isUsing == 1)
         {
-            currentBlock = nextBlock->nextBlock;
-            if (currentBlock == NULL)
+            currentBlock->isUsing = 0;
+            pointerBlock->isUsing = 0;
+
+            while (pointerBlock->nextBlock != NULL && pointerBlock->nextBlock->isUsing == 1)
+            {
+                pointerBlock = pointerBlock->nextBlock;
+                pointerBlock->isUsing = 0;
+            }
+
+            de++;
+            struct MemoryBlock *lastCutBlock = NULL;
+            if (previousBlock == NULL)
+            {
+                char s2[32];
+                sprintf(s2, "%u %u %u", previousBlock->addrFrom, previousBlock->addrTo);
+                fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 48 + 16 * de, getBootInfo()->screenX, 48 + 16 * de + 16);
+                putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 48 + 16 * de, COL8_FFFFFF, s2);
+                memoryManager->firstBlock = cutBlock(&lastCutBlock, currentBlock->addrFrom, pointerBlock->addrTo);
+            }
+            else
+            {
+                previousBlock->nextBlock = cutBlock(&lastCutBlock, currentBlock->addrFrom, pointerBlock->addrTo);
+            }
+
+            if (1)
+            {
+                char s[32];
+                // sprintf(s, "%u %u", currentBlock->addrFrom, pointerBlock->addrTo);
+                // sprintf(s, "%u %u", memoryManager->firstBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->addrFrom,
+                //         memoryManager->firstBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->nextBlock->addrTo);
+                // fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 100, getBootInfo()->screenX, 116);
+                // putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 100, COL8_FFFFFF, s);
+            }
+
+            lastCutBlock->nextBlock = pointerBlock->nextBlock;
+
+            if (lastCutBlock->nextBlock == NULL || lastCutBlock->nextBlock->nextBlock == NULL)
             {
                 break;
             }
 
-            nextBlock = currentBlock->nextBlock;
-            continue;
-        }
-
-        if (currentBlock->blockType == nextBlock->blockType)
-        {
-            currentBlock->addrTo = nextBlock->addrTo;
-            currentBlock->blockType++;
-            currentBlock->nextBlock = nextBlock->nextBlock;
-
-            struct MemoryBlock *temp = nextBlock;
-
-            nextBlock = nextBlock->nextBlock;
-            temp->nextBlock = NULL;
-            temp->isUsing = 0;
+            previousBlock = lastCutBlock;
+            currentBlock = lastCutBlock->nextBlock;
+            pointerBlock = currentBlock->nextBlock;
         }
         else
         {
-            currentBlock = nextBlock;
-            nextBlock = nextBlock->nextBlock;
-        }
-
-        if (nextBlock == NULL)
-        {
-
-            break;
+            currentBlock = pointerBlock->nextBlock;
+            pointerBlock = currentBlock->nextBlock;
         }
     }
 }
 
 int releaseBlock(struct MemoryManager *memoryManager, unsigned int addr)
 {
+    struct MemoryBlock *previousBlock = NULL;
     struct MemoryBlock *currentBlock = memoryManager->firstBlock;
     while (currentBlock != NULL)
     {
         if (currentBlock->addrFrom == addr)
         {
-            currentBlock->isUsing = 1;
-            combineMemoryBlock(memoryManager);
+            struct MemoryBlock *lastCutBlock = NULL;
+
+            if (previousBlock == NULL)
+            {
+                memoryManager->firstBlock = cutBlock(&lastCutBlock, currentBlock->addrFrom, currentBlock->addrTo);
+            }
+            else
+            {
+                previousBlock->nextBlock = cutBlock(&lastCutBlock, currentBlock->addrFrom, currentBlock->addrTo);
+            }
+            lastCutBlock->nextBlock = currentBlock->nextBlock;
+
+            currentBlock->isUsing = 0;
+
+            // combineMemoryBlock(memoryManager);
             return 0;
         }
+        previousBlock = currentBlock;
         currentBlock = currentBlock->nextBlock;
     }
 
@@ -346,19 +422,56 @@ unsigned int getUnusedMemoryTotal(struct MemoryManager *memoryManager)
     unsigned int total = 0;
     struct MemoryBlock *currentBlock = memoryManager->firstBlock;
 
-    // char *s;
-    // sprintf(s, "%u %u", currentBlock->blockType, currentBlock->addrTo);
-    // fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 100, getBootInfo()->screenX, 116);
-    // putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 100, COL8_FFFFFF, s);
-
+    int de = 0;
     while (currentBlock != NULL)
     {
+
         if (currentBlock->isUsing == 1)
         {
             total += currentBlock->addrTo - currentBlock->addrFrom + 1;
         }
 
+        // de++;
+        // if (de == 3)
+        // {
+        //     char s[32];
+        //     sprintf(s, "%u %u %u %u", currentBlock->addrFrom, currentBlock->addrTo - currentBlock->addrFrom + 1, currentBlock->isUsing, total);
+        //     fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 100, getBootInfo()->screenX, 116);
+        //     putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 100, COL8_FFFFFF, s);
+        //     break;
+        // }
+
         currentBlock = currentBlock->nextBlock;
     }
+
+    // currentBlock = memoryManager->firstBlock;
+    // int a = 0;
+    // while (1)
+    // {
+    //     if (currentBlock->nextBlock == NULL)
+    //     // if (0)
+    //     {
+    //         char s[32];
+    //         sprintf(s, "%u~%u|%u%u", currentBlock->addrFrom, currentBlock->addrTo, currentBlock->blockType, currentBlock->isUsing);
+    //         fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 64 + a * 16, getBootInfo()->screenX, 64 + a * 16 + 16);
+    //         putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 64 + a * 16, COL8_FFFFFF, s);
+    //         break;
+    //     }
+    //     else
+    //     {
+    //         char s[32];
+    //         sprintf(s, "%u~%u|%u%u %u~%u|%u%u", currentBlock->addrFrom, currentBlock->addrTo, currentBlock->blockType, currentBlock->isUsing, currentBlock->nextBlock->addrFrom, currentBlock->nextBlock->addrTo, currentBlock->nextBlock->blockType, currentBlock->nextBlock->isUsing);
+    //         fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 64 + a * 16, getBootInfo()->screenX, 64 + a * 16 + 16);
+    //         putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 64 + a * 16, COL8_FFFFFF, s);
+
+    //         if (currentBlock->nextBlock->nextBlock == NULL)
+    //         {
+    //             break;
+    //         }
+    //         currentBlock = currentBlock->nextBlock->nextBlock;
+    //     }
+    //     a++;
+    // }
+
     return total;
 }
