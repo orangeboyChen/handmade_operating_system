@@ -204,34 +204,32 @@ void HariMain(void)
 	// struct SheetManager *sheetManager;
 	struct Sheet *rootSheet = initRootSheet();
 	struct Sheet *sheet = createSubsheetToTop(rootSheet, 10, 10, 300, 120);
-	fillVram(sheet, COL8_008400);
-	// forceUpdateSheet(sheet);
-	// updateSheet(sheet);
 
-	struct Sheet *sheet2 = createSubsheetToTop(sheet, 20, 40, 50, 50);
+	struct Sheet *bgOfSheet = createSubsheetToTop(sheet, 0, 0, sheet->width, sheet->height);
+	fillVram(bgOfSheet, COL8_008400);
+
+	struct Sheet *sheet2 = createSubsheetToTop(rootSheet, 20, 50, 50, 50);
 	fillVram(sheet2, COL8_FFFFFF);
-	// updateSheet(sheet2);
-	// forceUpdateSheet(sheet2);
 
-	// updateAllSubsheet(rootSheet);
-	// forceUpdateSheet(sheet2);
-	// forceUpdateSheet(sheet);
-
-	fillInSheet(sheet, 0, 32, sheet->width, 2, COL8_848400);
-	fillInSheet(sheet, 0, 48, sheet->width, 2, COL_TRANSPARENT);
+	fillInSheet(bgOfSheet, 0, 32, sheet->width, 2, COL8_848400);
+	fillInSheet(bgOfSheet, 0, 60, sheet->width, 4, COL_TRANSPARENT);
 	fillInSheet(sheet2, 0, 15, 10, 10, COL_TRANSPARENT);
 	fillInSheet(sheet2, 20, 15, 10, 10, COL_TRANSPARENT);
 
-	updateSheetIndexMap(rootSheet);
-	forceUpdateSheet(sheet2);
-	forceUpdateSheet(sheet);
-
-	// fillVramByIndexMap(rootSheet);
-	// updateSheet(rootSheet);
-	// updateSheet(sheet);
+	// updateSheetIndexMap(sheet);
+	// updateSheet(bgOfSheet);
 	// updateSheet(sheet2);
 
-	// forceUpdateSheet(sheet2);
+	// updateSheetIndexMap(rootSheet);
+	// updateSheet(sheet2);
+	// updateSheet(bgOfSheet);
+	// updateSheet(sheet);
+
+	updateAllSubsheet(rootSheet);
+
+	// forceUpdateSheet(sheet);
+
+	// updateAllSubsheet(rootSheet);
 
 	// updateAllSubsheet(rootSheet);
 
@@ -241,7 +239,7 @@ void HariMain(void)
 	// printInSheet(sheet, 0, 0, s3, COL8_FFFFFF);
 
 	char s4[32];
-	sprintf(s4, "%u %u", rootSheet->indexMap[(15 + sheet2->y) * rootSheet->width + sheet2->x], sheet2->vram[15 * sheet2->width + 20]);
+	sprintf(s4, "%d %d", rootSheet->indexMap[(60 + sheet->y) * rootSheet->width + 0 + sheet->x], sheet->indexMap[60 * sheet->width + 0]);
 	printInSheet(sheet, 0, 0, s4, COL8_FFFFFF);
 	// putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s4);
 

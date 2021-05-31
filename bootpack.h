@@ -70,6 +70,8 @@ void logger(char *c, unsigned int y);
 #define FIX_TOP 1
 #define FIX_BOTTOM 2
 
+#define TRANSPARENT_INDEX -1
+
 struct Sheet
 {
     //自身基本属性

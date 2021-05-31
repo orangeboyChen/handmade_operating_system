@@ -159,9 +159,14 @@ void updateSheetIndexMap(struct Sheet *sheet)
         {
             for (x = currentSheet->x; x < currentSheet->x + currentSheet->width; x++)
             {
-                if (sheet->indexMap[y * sheet->width + x] == 0)
+                if (sheet->indexMap[y * sheet->width + x] == 0 || sheet->indexMap[y * sheet->width + x] == -1)
                 {
-                    if (currentSheet->vram[(y - currentSheet->y) * currentSheet->width + (x - currentSheet->x)] != COL_TRANSPARENT)
+                    unsigned int currentSheetIndex = (y - currentSheet->y) * currentSheet->width + (x - currentSheet->x);
+                    if (currentSheet->vram[currentSheetIndex] == COL_TRANSPARENT || currentSheet->indexMap[currentSheetIndex] == TRANSPARENT_INDEX)
+                    {
+                        sheet->indexMap[y * sheet->width + x] = TRANSPARENT_INDEX;
+                    }
+                    else
                     {
                         sheet->indexMap[y * sheet->width + x] = currentSheet->index;
                     }
@@ -261,6 +266,12 @@ void updateSingleSheetIndexAndVramInFatherSheet(struct Sheet *sheet)
                 fatherSheet->vram[fatherIndex] = sheet->vram[sonIndex];
             }
 
+            if (sheet->vram[sonIndex] == COL_TRANSPARENT && sheet->nextSheet == NULL)
+            {
+                fatherSheet->vram[fatherIndex] = COL_TRANSPARENT;
+            }
+            // fatherSheet->vram[fatherIndex] = sheet->vram[sonIndex];
+
             setBitInUpdateMap(fatherSheet, fatherIndex, true);
         }
     }
@@ -283,11 +294,10 @@ void updateSheet(struct Sheet *sheet)
         {
             unsigned int fatherIndex = y * fatherSheet->width + x;
             unsigned int sonIndex = (y - sheet->y) * sheet->width + (x - sheet->x);
-            if ((fatherSheet->indexMap[fatherIndex] == sheet->index && getBitInUpdateMap(sheet, sonIndex) == true) ||
-                sheet->vram[sonIndex] == COL_TRANSPARENT)
+            if ((fatherSheet->indexMap[fatherIndex] == sheet->index || sheet->vram[sonIndex] == COL_TRANSPARENT) && getBitInUpdateMap(sheet, sonIndex) == true)
             {
                 isUpdate = true;
-                setBitInUpdateMap(fatherSheet, fatherSheet, true);
+                setBitInUpdateMap(fatherSheet, fatherIndex, true);
 
                 // char color = sheet->vram[sonIndex];
                 // if (color != COL_TRANSPARENT)
@@ -299,10 +309,31 @@ void updateSheet(struct Sheet *sheet)
                 //     struct Sheet *currentSheet = fatherSheet->sheetStore[fatherSheet->indexMap[fatherIndex]];
                 //     fatherSheet->vram[fatherIndex] = currentSheet->vram[(y - currentSheet->y) * currentSheet->width + (x - currentSheet->x)];
                 // }
-                if (fatherSheet->indexMap[fatherIndex] == 0)
-                {
-                    continue;
-                }
+
+                // if (fatherSheet->indexMap[fatherIndex] == 0)
+                // {
+                //     if (sheet->vram[sonIndex] == COL_TRANSPARENT)
+                //     {
+                //         fatherSheet->vram[fatherIndex] = COL_TRANSPARENT;
+                //     }
+                //     else
+                //     {
+                //         continue;
+                //     }
+                // }
+                // else if (fatherSheet->indexMap[fatherIndex] == TRANSPARENT_INDEX)
+                // {
+                //     fatherSheet->vram[fatherIndex] = COL_TRANSPARENT;
+                // }
+                // if ((sheet->vram[sonIndex] == COL_TRANSPARENT || sheet->indexMap[sonIndex] == TRANSPARENT_INDEX) && sheet->nextSheet == NULL)
+                // {
+                //     fatherSheet->vram[fatherIndex] = COL_TRANSPARENT;
+                // }
+                // else
+                // {
+                //     struct Sheet *currentSheet = fatherSheet->sheetStore[fatherSheet->indexMap[fatherIndex]];
+                //     fatherSheet->vram[fatherIndex] = currentSheet->vram[(y - currentSheet->y) * currentSheet->width + (x - currentSheet->x)];
+                // }
                 struct Sheet *currentSheet = fatherSheet->sheetStore[fatherSheet->indexMap[fatherIndex]];
                 fatherSheet->vram[fatherIndex] = currentSheet->vram[(y - currentSheet->y) * currentSheet->width + (x - currentSheet->x)];
 
