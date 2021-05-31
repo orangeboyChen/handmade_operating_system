@@ -80,9 +80,18 @@ struct Sheet *createSubsheetToTopWithVram(struct Sheet *fatherSheet, short x, sh
     else
     {
         struct Sheet *currentSheet = fatherSheet->topSheet;
-        while (currentSheet->nextSheet != NULL && getFixedTop(currentSheet) == true)
+        while (true)
         {
+            if (getFixedTop(currentSheet) == false)
+            {
+                break;
+            }
             currentSheet = currentSheet->nextSheet;
+        }
+
+        if (currentSheet == NULL)
+        {
+            currentSheet = fatherSheet->bottomSheet;
         }
 
         newSheet->nextSheet = currentSheet;
@@ -354,11 +363,11 @@ void updateSheet(struct Sheet *sheet)
 
 char getFixedTop(struct Sheet *sheet)
 {
-    return sheet->status & (!(1 << 7)) != 0;
+    return (sheet->status & (1 << 5)) == 1 << 5;
 }
 char getFixedBottom(struct Sheet *sheet)
 {
-    return sheet->status & (!(1 << 6)) != 0;
+    return (sheet->status & (1 << 6)) == 1 << 6;
 }
 
 void setFixedTop(struct Sheet *sheet)
@@ -366,8 +375,17 @@ void setFixedTop(struct Sheet *sheet)
     struct Sheet *fatherSheet = sheet->fatherSheet;
 
     struct Sheet *currentSheet = fatherSheet->topSheet;
-    while (currentSheet->nextSheet != NULL && getFixedTop(currentSheet) == true)
+    while (currentSheet->nextSheet != NULL)
     {
+        if (currentSheet == sheet)
+        {
+            currentSheet = currentSheet->nextSheet;
+            continue;
+        }
+        if (currentSheet->nextSheet == NULL || getFixedTop(currentSheet) == false)
+        {
+            break;
+        }
         currentSheet = currentSheet->nextSheet;
     }
 
@@ -384,13 +402,25 @@ void setFixedTop(struct Sheet *sheet)
     sheet->previousSheet = currentSheet->previousSheet;
     sheet->nextSheet = currentSheet;
 
-    sheet->previousSheet->nextSheet = sheet;
-    sheet->nextSheet->previousSheet = sheet;
-    sheet->status = sheet->status | (1 << 7);
+    if (sheet->previousSheet != NULL)
+    {
+        sheet->previousSheet->nextSheet = sheet;
+    }
 
-    if (sheet->nextSheet == sheet->previousSheet)
+    if (sheet->nextSheet != NULL)
+    {
+        sheet->nextSheet->previousSheet = sheet;
+    }
+
+    sheet->status = sheet->status | (1 << 5);
+
+    if (sheet->nextSheet == sheet)
     {
         sheet->nextSheet = NULL;
+    }
+
+    if (sheet->previousSheet == sheet)
+    {
         sheet->previousSheet = NULL;
     }
 
@@ -431,7 +461,7 @@ void setFixedBottom(struct Sheet *sheet)
     }
 
     char s4[32];
-    sprintf(s4, "123");
+    sprintf(s4, "System is booting");
     putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s4);
 
     updateSheetIndexMap(fatherSheet);

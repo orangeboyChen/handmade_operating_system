@@ -2,11 +2,56 @@
 #include <stdio.h>
 #include <string.h>
 
+#define EFLAGS_AC_BIT 0x00040000
+#define CR0_CACHE_DISABLE 0x60000000
+unsigned int getUsableMemory(unsigned int start, unsigned int end)
+{
+    char flg486 = 0;
+    unsigned int eflg, cr0, i;
+
+    eflg = io_load_eflags();
+    eflg |= EFLAGS_AC_BIT;
+    io_store_eflags(eflg);
+    eflg = io_load_eflags();
+
+    if ((eflg & EFLAGS_AC_BIT) != 0)
+    {
+        flg486 = 1;
+    }
+
+    eflg &= ~EFLAGS_AC_BIT;
+    io_store_eflags(eflg);
+
+    if (flg486 != 0)
+    {
+        cr0 = load_cr0();
+        cr0 |= CR0_CACHE_DISABLE;
+        store_cr0(cr0);
+    }
+
+    i = memtest_sub(start, end);
+
+    if (flg486 != 0)
+    {
+        cr0 = load_cr0();
+        cr0 &= ~CR0_CACHE_DISABLE;
+        store_cr0(cr0);
+    }
+
+    return i;
+}
+
 void initMemoryManage(struct MemoryManager *memoryManager)
 {
 
     // initMemoryManager(memoryManager, 0x00400000, 0xbfffffff);
-    initMemoryManager(memoryManager, 0x00400000, 0x00400000 + 10 * 1024 * 1024);
+    unsigned int memoryTotal = getUsableMemory(0x00400000, 0xbfffffff);
+
+    initMemoryManager(memoryManager, 0x00400000, memoryTotal - 1);
+    // char s[32];
+    // sprintf(s, "%u", memoryTotal);
+    // fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 0, getBootInfo()->screenX, 16);
+    // putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s);
 }
 
 void initMemoryManager(struct MemoryManager *memoryManager, unsigned int start, unsigned int end)

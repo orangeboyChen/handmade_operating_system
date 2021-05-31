@@ -77,7 +77,7 @@ struct Sheet
     //自身基本属性
     short width, height;
     short x, y;
-    char status; //高1位fixTop 高2位fixBottom
+    char status; //高3位fixTop 高2位fixBottom
     char *vram;
 
     //对于兄弟图层
@@ -165,3 +165,54 @@ unsigned int getUnusedMemoryTotal(struct MemoryManager *memoryManager);
 int releaseBlock(struct MemoryManager *memoryManager, unsigned int addr);
 struct MemoryBlock *cutBlock(struct MemoryBlock **lastReturnBlock, unsigned int fromAddr, int toAddr);
 unsigned int getMaxBlockTypeInMemory(struct MemoryManager *memoryManager, unsigned int size);
+unsigned int getUsableMemory(unsigned int start, unsigned int end);
+
+//window.c
+void initDesktop(struct Sheet *rootSheet);
+void createWindow(struct Sheet *fatherSheet, short x, short y, short width, short height, char *title);
+void initMouseCursorSheet(struct Sheet *rootSheet);
+
+//graphic.c
+void initMouseCursor(struct Sheet *mouseSheet, short x, short y);
+
+/* dsctbl.c */
+struct SEGMENT_DESCRIPTOR
+{
+    short limit_low, base_low;
+    char base_mid, access_right;
+    char limit_high, base_high;
+};
+struct GATE_DESCRIPTOR
+{
+    short offset_low, selector;
+    char dw_count, access_right;
+    short offset_high;
+};
+void init_gdtidt();
+void set_segmdesc(struct SEGMENT_DESCRIPTOR *sd, unsigned int limit, int base, int ar);
+void set_gatedesc(struct GATE_DESCRIPTOR *gd, int offset, int selector, int ar);
+#define ADR_IDT 0x0026f800
+#define LIMIT_IDT 0x000007ff
+#define ADR_GDT 0x00270000
+#define LIMIT_GDT 0x0000ffff
+#define ADR_BOTPAK 0x00280000
+#define LIMIT_BOTPAK 0x0007ffff
+#define AR_DATA32_RW 0x4092
+#define AR_CODE32_ER 0x409a
+#define AR_INTGATE32 0x008e
+
+//interupt.c
+void init_pic();
+void inthandler27(int *esp);
+#define PIC0_ICW1 0x0020
+#define PIC0_OCW2 0x0020
+#define PIC0_IMR 0x0021
+#define PIC0_ICW2 0x0021
+#define PIC0_ICW3 0x0021
+#define PIC0_ICW4 0x0021
+#define PIC1_ICW1 0x00a0
+#define PIC1_OCW2 0x00a0
+#define PIC1_IMR 0x00a1
+#define PIC1_ICW2 0x00a1
+#define PIC1_ICW3 0x00a1
+#define PIC1_ICW4 0x00a1
