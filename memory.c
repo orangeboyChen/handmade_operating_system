@@ -6,7 +6,7 @@ void initMemoryManage(struct MemoryManager *memoryManager)
 {
 
     // initMemoryManager(memoryManager, 0x00400000, 0xbfffffff);
-    initMemoryManager(memoryManager, 0x00400000, 0x00400000 + 16 * 1024 * 1024);
+    initMemoryManager(memoryManager, 0x00400000, 0x00400000 + 10 * 1024 * 1024);
 }
 
 void initMemoryManager(struct MemoryManager *memoryManager, unsigned int start, unsigned int end)
