@@ -24,16 +24,19 @@ void init_pic()
 
 void inthandler21(int *esp)
 {
-    struct BootInfo *bootInfo = getBootInfo();
-    char s4[32];
-    sprintf(s4, "abc");
-    // printInSheet(sheet, 0, 0, s4, COL8_FFFFFF);
-    putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 64, COL8_FFFFFF, s4);
-
-    for (;;)
-    {
-        io_hlt();
-    }
+    unsigned char data;
+    io_out8(PIC0_OCW2, 0x61);
+    data = io_in8(PORT_KEYDAT);
+    putInFifo(&systemFifo, FIFO_TYPE_KEYBOARD, NULL, data);
+    return;
 }
 void inthandler27(int *esp) {}
-void inthandler2c(int *esp) {}
+void inthandler2c(int *esp)
+{
+    unsigned char data;
+    io_out8(PIC1_OCW2, 0x64);
+    io_out8(PIC0_OCW2, 0x62);
+    data = io_in8(PORT_KEYDAT);
+    putInFifo(&systemFifo, FIFO_TYPE_MOUSE, NULL, data);
+    return;
+}

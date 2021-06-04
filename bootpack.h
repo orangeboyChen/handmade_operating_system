@@ -19,7 +19,9 @@
 #define COL8_840084 13
 #define COL8_008484 14
 #define COL8_848484 15
+
 #define COL_TRANSPARENT 50
+#define COL_FORCE_TRANSPARENT 100
 
 //boot
 struct BootInfo
@@ -70,7 +72,8 @@ void logger(char *c, unsigned int y);
 #define FIX_TOP 1
 #define FIX_BOTTOM 2
 
-#define TRANSPARENT_INDEX -1
+#define TRANSPARENT_INDEX 127
+#define FORCE_TRANSPARENT_INDEX 126
 
 struct Sheet
 {
@@ -98,6 +101,9 @@ struct Sheet
     //备注
     unsigned int series;
 
+    //备用属性
+    int attribute[128];
+
     // struct SheetManager *subSheetManager;
 };
 
@@ -118,6 +124,7 @@ struct Sheet *initRootSheet();
 struct Sheet *createSubsheetToTop(struct Sheet *fatherSheet, short x, short y, short width, short height);
 struct Sheet *createSubsheetToTopWithVram(struct Sheet *fatherSheet, short x, short y, short width, short height, char *vram);
 void updateSheet(struct Sheet *sheet);
+void updateSheetWithTransparent(struct Sheet *sheet, int isTransparent);
 void fillVram(struct Sheet *sheet, unsigned char c);
 void setBitInUpdateMap(struct Sheet *sheet, unsigned int index, unsigned int value);
 void forceUpdateSheet(struct Sheet *sheet);
@@ -130,9 +137,11 @@ void fillInSheet(struct Sheet *sheet, short x, short y, short width, short heigh
 void updateAllSubsheetWithFather(struct Sheet *sheet, struct Sheet *fatherSheet);
 void updateAllSubsheet(struct Sheet *sheet);
 void updateSingleSheetIndexAndVramInFatherSheet(struct Sheet *sheet);
-void updateSheetIndexMap(struct Sheet *sheet);
+void updateIndexMap(struct Sheet *sheet);
 void fillVramByIndexMap(struct Sheet *sheet);
-
+void moveSheet(struct Sheet *sheet, short x1, short y1);
+void updatePartOfIndexMap(struct Sheet *sheet, short fromX, short fromY, short toX, short toY);
+void fillPartOfVramByIndexMap(struct Sheet *sheet, short fromX, short fromY, short toX, short toY);
 // void createSubSheetManager(struct Sheet **fatherSheet);
 
 //memory.c
@@ -168,12 +177,19 @@ unsigned int getMaxBlockTypeInMemory(struct MemoryManager *memoryManager, unsign
 unsigned int getUsableMemory(unsigned int start, unsigned int end);
 
 //window.c
+struct Window
+{
+    struct Sheet *windowSheet;
+};
 void initDesktop(struct Sheet *rootSheet);
-void createWindow(struct Sheet *fatherSheet, short x, short y, short width, short height, char *title);
+struct Sheet *createWindow(struct Sheet *fatherSheet, short x, short y, short width, short height, char *title);
 void initMouseCursorSheet(struct Sheet *rootSheet);
+void updateMouseCursorSheet(short moveX, short moveY);
 
 //graphic.c
 void initMouseCursor(struct Sheet *mouseSheet, short x, short y);
+void initFourRadius(struct Sheet *backgroundSheet);
+void initButtonCircle(struct Sheet *sheet, short x0, short y0, unsigned int color);
 
 /* dsctbl.c */
 struct SEGMENT_DESCRIPTOR
@@ -216,3 +232,57 @@ void inthandler27(int *esp);
 #define PIC1_ICW2 0x00a1
 #define PIC1_ICW3 0x00a1
 #define PIC1_ICW4 0x00a1
+
+//fifo.c
+#define FIFO_MAX 512
+#define FIFO_TYPE_KEYBOARD 0
+#define FIFO_TYPE_MOUSE 1
+
+//subtype
+//--mouse
+#define FIFO_SUBTYPE_MOUSE_LEFT = 0
+#define FIFO_SUBTYPE_MOUSE_RIGHT = 1
+
+extern struct Fifo systemFifo;
+struct FifoItem
+{
+    unsigned int type;
+    unsigned int subtype;
+    unsigned char data;
+};
+
+struct Fifo
+{
+    struct FifoItem fifoItem[FIFO_MAX];
+    unsigned int headIndex;
+    unsigned int tailIndex;
+    unsigned int size;
+};
+void initFifo(struct Fifo *fifo);
+void putInFifo(struct Fifo *fifo, unsigned int type, unsigned int subtype, char data);
+struct FifoItem *getInFifo(struct Fifo *fifo);
+
+//io
+#define MOUSE_WIDTH 8
+#define MOUSE_HEIGHT 16
+extern struct MouseData mouseData;
+struct MouseData
+{
+    unsigned char data[3];
+    unsigned char phase;
+    int moveX, moveY, btn;
+    int x, y;
+    short rootIndexOfPointer;
+};
+#define PORT_KEYDAT 0x0060
+#define PORT_KEYSTA 0x0064
+#define PORT_KEYCMD 0x0064
+#define KEYCMD_SENDTO_MOUSE 0xd4
+#define MOUSECMD_ENABLE 0xf4
+#define KEYSTA_SEND_NOTREADY 0x02
+#define KEYCMD_WRITE_MODE 0x60
+#define KBC_MODE 0x47
+void enableMouse();
+void initKeyboard();
+void waitKbcSendKey();
+int putInMouseData(struct MouseData *mouseData, unsigned char data);

@@ -21,7 +21,7 @@ struct Sheet *initRootSheet()
     struct Sheet *backgroundSheet = createSubsheetToTop(rootSheet, 0, 0, rootSheet->width, rootSheet->height);
 
     //刷新视图
-    fillVram(backgroundSheet, COL8_000084);
+    fillVram(backgroundSheet, COL8_840084);
     setFixedBottom(backgroundSheet);
     forceUpdateSheet(backgroundSheet);
 
@@ -44,7 +44,7 @@ struct Sheet *createSubsheetToTopWithVram(struct Sheet *fatherSheet, short x, sh
     newSheet->indexMap = allocaMemory(getMemoryManager(), width * height * sizeof(int));
 
     //按位存储节省空间
-    newSheet->updateMap = allocaMemory(getMemoryManager(), (width * height - 1) / sizeof(char) + 1);
+    newSheet->updateMap = allocaMemory(getMemoryManager(), (width * height - 1) / sizeof(char) + 1 + 1);
 
     newSheet->fatherSheet = fatherSheet;
 
@@ -150,7 +150,145 @@ void fillVram(struct Sheet *sheet, unsigned char c)
     }
 }
 
-void updateSheetIndexMap(struct Sheet *sheet)
+void moveSheet(struct Sheet *sheet, short x1, short y1)
+{
+    short oldX = sheet->x;
+    short oldY = sheet->y;
+    sheet->x = x1;
+    sheet->y = y1;
+
+    // if (oldX == x1 && oldY == y1)
+    // {
+    //     return;
+    // }
+
+    int toX = x1 + sheet->width - 1;
+    int toY = y1 + sheet->height - 1;
+    int oldToX = oldX + sheet->width - 1;
+    int oldToY = oldY + sheet->height - 1;
+
+    if (x1 <= 0)
+    {
+        x1 = 0;
+    }
+
+    if (y1 <= 0)
+    {
+        y1 = 0;
+    }
+
+    if (sheet->x <= 0)
+    {
+        sheet->x = 0;
+    }
+
+    if (sheet->y <= 0)
+    {
+        sheet->y = 0;
+    }
+
+    if (toX >= sheet->fatherSheet->width)
+    {
+        toX = sheet->fatherSheet->width - 1;
+    }
+
+    if (toY >= sheet->fatherSheet->height)
+    {
+        toY = sheet->fatherSheet->height - 1;
+    }
+
+    if (oldToX >= sheet->fatherSheet->width)
+    {
+        oldToX = sheet->fatherSheet->width - 1;
+    }
+
+    if (oldToY >= sheet->fatherSheet->height)
+    {
+        oldToY = sheet->fatherSheet->height - 1;
+    }
+
+    updatePartOfIndexMap(sheet->fatherSheet, x1, y1, toX, toY);
+    fillPartOfVramByIndexMap(sheet->fatherSheet, x1, y1, toX, toY);
+
+    updatePartOfIndexMap(sheet->fatherSheet, oldX, oldY, oldToX, oldToY);
+    fillPartOfVramByIndexMap(sheet->fatherSheet, oldX, oldY, oldToX, oldToY);
+
+    // updateAllSubsheet(sheet->fatherSheet->fatherSheet);
+    // updateSheet(sheet);
+    updateSheet(sheet->fatherSheet);
+    // forceUpdateSheet(sheet);
+}
+
+void updatePartOfIndexMap(struct Sheet *sheet, short fromX, short fromY, short toX, short toY)
+{
+    int x, y;
+    for (y = fromY; y <= toY; y++)
+    {
+        for (x = fromX; x <= toX; x++)
+        {
+            sheet->indexMap[y * sheet->width + x] = 0;
+        }
+    }
+
+    struct Sheet *currentSheet = sheet->topSheet;
+    while (currentSheet != NULL)
+    {
+        int x, y;
+
+        for (y = currentSheet->y; y < currentSheet->y + currentSheet->height; y++)
+        {
+            for (x = currentSheet->x; x < currentSheet->x + currentSheet->width; x++)
+            {
+                if (y < fromY || y > toY || x < fromX || x > toX)
+                {
+                    continue;
+                }
+
+                if (x >= sheet->width || y >= sheet->height)
+                {
+                    continue;
+                }
+
+                // if (y > sheet->height || x > sheet->width)
+                // {
+                //     continue;
+                // }
+                unsigned int currentSheetIndex = (y - currentSheet->y) * currentSheet->width + (x - currentSheet->x);
+                if (sheet->indexMap[y * sheet->width + x] == 0 || sheet->indexMap[y * sheet->width + x] == TRANSPARENT_INDEX)
+                {
+                    if (currentSheet->vram[currentSheetIndex] == COL_TRANSPARENT || currentSheet->indexMap[currentSheetIndex] == TRANSPARENT_INDEX)
+                    {
+                        sheet->indexMap[y * sheet->width + x] = TRANSPARENT_INDEX;
+                    }
+
+                    else
+                    {
+                        sheet->indexMap[y * sheet->width + x] = currentSheet->index;
+                    }
+                }
+
+                if (currentSheet->vram[currentSheetIndex] == COL_FORCE_TRANSPARENT || currentSheet->indexMap[currentSheetIndex] == FORCE_TRANSPARENT_INDEX)
+                {
+                    sheet->indexMap[y * sheet->width + x] = FORCE_TRANSPARENT_INDEX;
+                }
+            }
+        }
+        currentSheet = currentSheet->nextSheet;
+    }
+    int i, j;
+    for (i = 0; i < sheet->height; i++)
+    {
+        for (j = 0; j < sheet->width; j++)
+        {
+            if (sheet->indexMap[i * sheet->width + j] == FORCE_TRANSPARENT_INDEX)
+            {
+                sheet->indexMap[i * sheet->width + j] = TRANSPARENT_INDEX;
+            }
+        }
+    }
+}
+
+void updateIndexMap(struct Sheet *sheet)
 {
     if (sheet->topSheet == NULL)
     {
@@ -168,17 +306,28 @@ void updateSheetIndexMap(struct Sheet *sheet)
         {
             for (x = currentSheet->x; x < currentSheet->x + currentSheet->width; x++)
             {
-                if (sheet->indexMap[y * sheet->width + x] == 0 || sheet->indexMap[y * sheet->width + x] == -1)
+                if (x > sheet->width || y > sheet->height || x < 0 || y < 0)
                 {
-                    unsigned int currentSheetIndex = (y - currentSheet->y) * currentSheet->width + (x - currentSheet->x);
+                    continue;
+                }
+
+                unsigned int currentSheetIndex = (y - currentSheet->y) * currentSheet->width + (x - currentSheet->x);
+                if (sheet->indexMap[y * sheet->width + x] == 0 || sheet->indexMap[y * sheet->width + x] == TRANSPARENT_INDEX)
+                {
                     if (currentSheet->vram[currentSheetIndex] == COL_TRANSPARENT || currentSheet->indexMap[currentSheetIndex] == TRANSPARENT_INDEX)
                     {
                         sheet->indexMap[y * sheet->width + x] = TRANSPARENT_INDEX;
                     }
+
                     else
                     {
                         sheet->indexMap[y * sheet->width + x] = currentSheet->index;
                     }
+                }
+
+                if (currentSheet->vram[currentSheetIndex] == COL_FORCE_TRANSPARENT || currentSheet->indexMap[currentSheetIndex] == FORCE_TRANSPARENT_INDEX)
+                {
+                    sheet->indexMap[y * sheet->width + x] = FORCE_TRANSPARENT_INDEX;
                 }
                 // else if (sheet->indexMap[y * sheet->width + x] == -1)
                 // {
@@ -190,6 +339,18 @@ void updateSheetIndexMap(struct Sheet *sheet)
             }
         }
         currentSheet = currentSheet->nextSheet;
+    }
+
+    int i, j;
+    for (i = 0; i < sheet->height; i++)
+    {
+        for (j = 0; j < sheet->width; j++)
+        {
+            if (sheet->indexMap[i * sheet->width + j] == FORCE_TRANSPARENT_INDEX)
+            {
+                sheet->indexMap[i * sheet->width + j] = TRANSPARENT_INDEX;
+            }
+        }
     }
 
     // struct Sheet *currentSheet = sheet->bottomSheet;
@@ -218,7 +379,7 @@ void updateSheetIndexMap(struct Sheet *sheet)
 
 void forceUpdateSheet(struct Sheet *sheet)
 {
-    updateSheetIndexMap(sheet->fatherSheet);
+    updateIndexMap(sheet->fatherSheet);
     int i, j;
     for (i = 0; i < sheet->height; i++)
     {
@@ -275,7 +436,7 @@ void updateSingleSheetIndexAndVramInFatherSheet(struct Sheet *sheet)
                 fatherSheet->vram[fatherIndex] = sheet->vram[sonIndex];
             }
 
-            if (sheet->vram[sonIndex] == COL_TRANSPARENT && sheet->nextSheet == NULL)
+            if ((sheet->vram[sonIndex] == COL_TRANSPARENT && sheet->nextSheet == NULL) || (sheet->vram[sonIndex] == COL_FORCE_TRANSPARENT))
             {
                 fatherSheet->vram[fatherIndex] = COL_TRANSPARENT;
             }
@@ -286,79 +447,93 @@ void updateSingleSheetIndexAndVramInFatherSheet(struct Sheet *sheet)
     }
 }
 
-void updateSheet(struct Sheet *sheet)
+void updateSheetWithTransparent(struct Sheet *sheet, int isTransparent)
 {
-
     struct Sheet *fatherSheet = sheet->fatherSheet;
     if (fatherSheet == NULL)
     {
         return;
     }
 
+    if (isTransparent == true)
+    {
+        updateIndexMap(fatherSheet);
+    }
+
     int x, y;
     char isUpdate = false;
+    int currentIsTransparent = false;
     for (y = sheet->y; y < sheet->height + sheet->y; y++)
     {
         for (x = sheet->x; x < sheet->width + sheet->x; x++)
         {
+            if (x > fatherSheet->width || y > fatherSheet->height)
+            {
+                continue;
+            }
             unsigned int fatherIndex = y * fatherSheet->width + x;
             unsigned int sonIndex = (y - sheet->y) * sheet->width + (x - sheet->x);
-            if ((fatherSheet->indexMap[fatherIndex] == sheet->index || sheet->vram[sonIndex] == COL_TRANSPARENT) && getBitInUpdateMap(sheet, sonIndex) == true)
+
+            // if (fatherSheet->indexMap[fatherIndex] == FORCE_TRANSPARENT_INDEX)
+            // {
+            //     fatherSheet->indexMap[fatherIndex] = TRANSPARENT_INDEX;
+            //     fatherSheet->vram[fatherIndex] = COL_TRANSPARENT;
+            // }
+
+            if ((fatherSheet->indexMap[fatherIndex] == sheet->index || sheet->vram[sonIndex] == COL_TRANSPARENT || sheet->vram[sonIndex] == COL_FORCE_TRANSPARENT) && getBitInUpdateMap(sheet, sonIndex) == true)
             {
                 isUpdate = true;
                 setBitInUpdateMap(fatherSheet, fatherIndex, true);
-
-                // char color = sheet->vram[sonIndex];
-                // if (color != COL_TRANSPARENT)
-                // {
-                //     fatherSheet->vram[fatherIndex] = color;
-                // }
-                // else
-                // {
-                //     struct Sheet *currentSheet = fatherSheet->sheetStore[fatherSheet->indexMap[fatherIndex]];
-                //     fatherSheet->vram[fatherIndex] = currentSheet->vram[(y - currentSheet->y) * currentSheet->width + (x - currentSheet->x)];
-                // }
-
-                // if (fatherSheet->indexMap[fatherIndex] == 0)
-                // {
-                //     if (sheet->vram[sonIndex] == COL_TRANSPARENT)
-                //     {
-                //         fatherSheet->vram[fatherIndex] = COL_TRANSPARENT;
-                //     }
-                //     else
-                //     {
-                //         continue;
-                //     }
-                // }
-                // else if (fatherSheet->indexMap[fatherIndex] == TRANSPARENT_INDEX)
-                // {
-                //     fatherSheet->vram[fatherIndex] = COL_TRANSPARENT;
-                // }
-                // if ((sheet->vram[sonIndex] == COL_TRANSPARENT || sheet->indexMap[sonIndex] == TRANSPARENT_INDEX) && sheet->nextSheet == NULL)
-                // {
-                //     fatherSheet->vram[fatherIndex] = COL_TRANSPARENT;
-                // }
-                // else
-                // {
-                //     struct Sheet *currentSheet = fatherSheet->sheetStore[fatherSheet->indexMap[fatherIndex]];
-                //     fatherSheet->vram[fatherIndex] = currentSheet->vram[(y - currentSheet->y) * currentSheet->width + (x - currentSheet->x)];
-                // }
                 struct Sheet *currentSheet = fatherSheet->sheetStore[fatherSheet->indexMap[fatherIndex]];
+
                 fatherSheet->vram[fatherIndex] = currentSheet->vram[(y - currentSheet->y) * currentSheet->width + (x - currentSheet->x)];
 
+                // if (fatherSheet->vram[fatherIndex] == COL_FORCE_TRANSPARENT)
+                // {
+                //     fatherSheet->indexMap[fatherIndex] = TRANSPARENT_INDEX;
+                //     fatherSheet->vram[fatherIndex] = COL_TRANSPARENT;
+                // }
+
+                if (sheet->vram[sonIndex] == COL_TRANSPARENT || sheet->vram[sonIndex] == COL_FORCE_TRANSPARENT)
+                {
+                    currentIsTransparent = true;
+                }
                 setBitInUpdateMap(sheet, sonIndex, false);
             }
         }
     }
 
-    if (fatherSheet->fatherSheet != NULL && isUpdate == true)
+    // if (!isUpdate)
+    // {
+    //     return;
+    // }
+
+    if (fatherSheet->fatherSheet != NULL)
     {
-        updateSheet(fatherSheet);
+        updateSheetWithTransparent(fatherSheet, currentIsTransparent);
+        // updateSheetWithTransparent(fatherSheet, false);
     }
     else
     {
-        memset(sheet->updateMap, 0, (sheet->width * sheet->height - 1) / sizeof(char) + 1);
+        // releaseBlock(getMemoryManager(), sheet->updateMap);
+        // sheet->updateMap = allocaMemory(getMemoryManager(), (sheet->width * sheet->height - 1) / sizeof(char) + 1);
+
+        // int i, j;
+        // for (i = 0; i < sheet->height; i++)
+        // {
+        //     for (j = 0; j < sheet->width; j++)
+        //     {
+        //         setBitInUpdateMap(sheet, i * sheet->width + j, false);
+        //     }
+        // }
+
+        memset(sheet->updateMap, 0, (sheet->width * sheet->height - 1) / sizeof(char) + 1 + 1);
     }
+}
+
+void updateSheet(struct Sheet *sheet)
+{
+    updateSheetWithTransparent(sheet, true);
 }
 
 char getFixedTop(struct Sheet *sheet)
@@ -424,7 +599,7 @@ void setFixedTop(struct Sheet *sheet)
         sheet->previousSheet = NULL;
     }
 
-    updateSheetIndexMap(fatherSheet);
+    updateIndexMap(fatherSheet);
 }
 
 void setFixedBottom(struct Sheet *sheet)
@@ -460,11 +635,11 @@ void setFixedBottom(struct Sheet *sheet)
         sheet->previousSheet = NULL;
     }
 
-    char s4[32];
-    sprintf(s4, "System is booting");
-    putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s4);
+    // char s4[32];
+    // sprintf(s4, "System is booting");
+    // putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s4);
 
-    updateSheetIndexMap(fatherSheet);
+    updateIndexMap(fatherSheet);
 }
 
 void printInSheet(struct Sheet *sheet, short x, short y, char *c, unsigned int colorConstant)
@@ -490,15 +665,54 @@ void fillInSheet(struct Sheet *sheet, short x, short y, short width, short heigh
 void fillVramByIndexMap(struct Sheet *sheet)
 {
     int x, y;
-    for (x = 0; x < sheet->height; x++)
+    for (y = 0; y < sheet->height; y++)
     {
-        for (y = 0; y < sheet->width; y++)
+        for (x = 0; x < sheet->width; x++)
         {
             if (sheet->indexMap[y * sheet->width + x] != 0)
             {
                 struct Sheet *assistSheet = sheet->sheetStore[sheet->indexMap[y * sheet->width + x]];
-                sheet->vram[y * sheet->width + x] = assistSheet->vram[(y - assistSheet->y) * assistSheet->width + (x - assistSheet->x)];
-                setBitInUpdateMap(sheet, x * sheet->width + y, true);
+                if (sheet->indexMap[y * sheet->width + x] == TRANSPARENT_INDEX)
+                {
+                    sheet->vram[y * sheet->width + x] = COL_TRANSPARENT;
+                }
+                else if (sheet->indexMap[y * sheet->width + x] == FORCE_TRANSPARENT_INDEX)
+                {
+                    sheet->vram[y * sheet->width + x] = COL_TRANSPARENT;
+                }
+                else
+                {
+                    sheet->vram[y * sheet->width + x] = assistSheet->vram[(y - assistSheet->y) * assistSheet->width + (x - assistSheet->x)];
+                }
+                setBitInUpdateMap(sheet, y * sheet->width + x, true);
+            }
+        }
+    }
+}
+
+void fillPartOfVramByIndexMap(struct Sheet *sheet, short fromX, short fromY, short toX, short toY)
+{
+    int x, y;
+    for (y = fromY; y <= toY; y++)
+    {
+        for (x = fromX; x <= toX; x++)
+        {
+            if (sheet->indexMap[y * sheet->width + x] != 0)
+            {
+                struct Sheet *assistSheet = sheet->sheetStore[sheet->indexMap[y * sheet->width + x]];
+                if (sheet->indexMap[y * sheet->width + x] == TRANSPARENT_INDEX)
+                {
+                    sheet->vram[y * sheet->width + x] = COL_TRANSPARENT;
+                }
+                else if (sheet->indexMap[y * sheet->width + x] == FORCE_TRANSPARENT_INDEX)
+                {
+                    sheet->vram[y * sheet->width + x] = COL_TRANSPARENT;
+                }
+                else
+                {
+                    sheet->vram[y * sheet->width + x] = assistSheet->vram[(y - assistSheet->y) * assistSheet->width + (x - assistSheet->x)];
+                }
+                setBitInUpdateMap(sheet, y * sheet->width + x, true);
             }
         }
     }
