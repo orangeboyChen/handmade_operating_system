@@ -1,6 +1,4 @@
-#include "bootpack.h"
-#include <string.h>
-#include <stdio.h>
+#include "fifo.h"
 
 struct Fifo systemFifo;
 void initFifo(struct Fifo *fifo)

@@ -1,5 +1,4 @@
-#include "bootpack.h"
-#include <stdio.h>
+#include "window.h"
 
 unsigned int getStringSize(char *c)
 {

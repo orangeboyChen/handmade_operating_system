@@ -1,6 +1,4 @@
-#include "bootpack.h"
-#include <stdio.h>
-#include <string.h>
+#include "sheet.h"
 
 struct Sheet *initRootSheet()
 {
@@ -329,13 +327,6 @@ void updateIndexMap(struct Sheet *sheet)
                 {
                     sheet->indexMap[y * sheet->width + x] = FORCE_TRANSPARENT_INDEX;
                 }
-                // else if (sheet->indexMap[y * sheet->width + x] == -1)
-                // {
-                //     struct Sheet *assistSheet = sheet->sheetStore[sheet->indexMap[y * sheet->width + x]];
-                //     setBitInUpdateMap(assistSheet, (y - assistSheet->y) * assistSheet->width + (x - assistSheet->x), true);
-                // }
-
-                // sheet->indexMap[y * sheet->width + x] = currentSheet->index;
             }
         }
         currentSheet = currentSheet->nextSheet;
@@ -352,29 +343,6 @@ void updateIndexMap(struct Sheet *sheet)
             }
         }
     }
-
-    // struct Sheet *currentSheet = sheet->bottomSheet;
-    // while (currentSheet != NULL)
-    // {
-    //     int x, y;
-    //     for (y = currentSheet->y; y < currentSheet->y + currentSheet->height; y++)
-    //     {
-    //         for (x = currentSheet->x; x < currentSheet->x + currentSheet->width; x++)
-    //         {
-    //             if (currentSheet->vram[(y - currentSheet->y) * currentSheet->width + (x - currentSheet->x)] != COL_TRANSPARENT)
-    //             {
-    //                 sheet->indexMap[y * sheet->width + x] = currentSheet->index;
-    //             }
-    //             else
-    //             {
-    //                 struct Sheet *assistSheet = sheet->sheetStore[sheet->indexMap[y * sheet->width + x]];
-    //                 setBitInUpdateMap(assistSheet, (y - assistSheet->y) * assistSheet->width + (x - assistSheet->x), true);
-    //             }
-    //             // sheet->indexMap[y * sheet->width + x] = currentSheet->index;
-    //         }
-    //     }
-    //     currentSheet = currentSheet->previousSheet;
-    // }
 }
 
 void forceUpdateSheet(struct Sheet *sheet)

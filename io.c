@@ -1,4 +1,5 @@
-#include "bootpack.h"
+#include "io.h"
+
 struct MouseData mouseData;
 
 void waitKbcSendKey()

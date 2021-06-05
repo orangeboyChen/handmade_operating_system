@@ -1,4 +1,4 @@
-#include "bootpack.h"
+#include "dsctbl.h"
 
 void init_gdtidt()
 {

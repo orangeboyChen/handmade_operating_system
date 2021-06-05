@@ -1,4 +1,5 @@
 #include "bootpack.h"
+#include "memory.h"
 void initPalette(void)
 {
     static unsigned char table_rgb[16 * 3] = {

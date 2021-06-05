@@ -1,5 +1,4 @@
-#include "bootpack.h"
-#include <stdio.h>
+#include "graphic.h"
 #define RADIUS_LENGTH 16
 #define CIRCLE_RADIUS 8
 void initFourRadius(struct Sheet *backgroundSheet)

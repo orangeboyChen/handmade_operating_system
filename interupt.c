@@ -1,5 +1,4 @@
-#include "bootpack.h"
-#include <stdio.h>
+#include "interupt.h"
 
 void init_pic()
 {
