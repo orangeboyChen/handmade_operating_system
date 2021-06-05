@@ -286,3 +286,10 @@ void enableMouse();
 void initKeyboard();
 void waitKbcSendKey();
 int putInMouseData(struct MouseData *mouseData, unsigned char data);
+
+//task.c
+struct Task
+{
+    int id;
+    struct Sheet *sheet;
+};

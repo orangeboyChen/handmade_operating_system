@@ -101,33 +101,8 @@ void HariMain(void)
 							cs->fatherSheet->index,
 							x,
 							y
-							// rootSheet->topSheet->index,
-							// rootSheet->topSheet->nextSheet->index,
-							// rootSheet->topSheet->nextSheet->nextSheet->index
-							// rootSheet->topSheet->nextSheet->nextSheet->nextSheet->index,
-							// rootSheet->topSheet->nextSheet->nextSheet->nextSheet->nextSheet->index,
-							// rootSheet->topSheet->nextSheet->nextSheet->nextSheet->nextSheet->nextSheet->index
+
 					);
-					// printInSheet(sheet, 0, 0, s4, COL8_FFFFFF);
-					// fillInSheet(rootSheet->bottomSheet, 0, 32, 32 * 10, 16, COL8_000000);
-					// printInSheet(rootSheet->bottomSheet, 0, 32, s4, COL8_FFFFFF);
-
-					// char s5[32];
-					// struct Sheet *cs = rootSheet->topSheet->nextSheet->nextSheet;
-					// sprintf(s5, "%d %d", rootSheet->vram[mouseData.y * rootSheet->width + mouseData.x],
-					// 		cs->vram[(mouseData.y - cs->height) * cs->width + (mouseData.x - cs->width)]);
-					// // printInSheet(sheet, 0, 0, s4, COL8_FFFFFF);
-					// fillInSheet(rootSheet->bottomSheet, 0, 64, 8 * 10, 16, COL8_000000);
-					// printInSheet(rootSheet->bottomSheet, 0, 64, s5, COL8_FFFFFF);
-
-					// if (mouseData.x > 120)
-					// {
-					// 	moveSheet(rootSheet->topSheet->nextSheet->nextSheet->nextSheet, 20, 20);
-					// }
-					// else
-					// {
-					// 	moveSheet(rootSheet->topSheet->nextSheet->nextSheet->nextSheet, 70, 20);
-					// }
 
 					// if ((mouseData.btn & 0x01) == 0x01)
 					if (mouseData.btn == 0x01)
