@@ -1,4 +1,54 @@
 #include "bootpack.h"
+#include "timer.h"
+#include "task.h"
+
+struct Sheet *statusLabel;
+int i = 0;
+void showSomething()
+{
+	i++;
+
+	// setTimer(10, &showSomething);
+
+	// char c[32];
+	// sprintf(c, "%ds", i);
+	// setLabelText(statusLabel, c, COL8_848400);
+
+	return;
+}
+
+void switchA();
+void switchT();
+
+void switchT()
+{
+	setSystemTimer(2, &switchA);
+	farjmp(0, 4 * 8);
+}
+
+void switchA()
+{
+	setSystemTimer(6, &switchT);
+	farjmp(0, 3 * 8);
+}
+
+void task_b_main()
+{
+	while (true)
+	{
+		setLabelText(statusLabel, "taskb", COL8_000000);
+
+		struct FifoItem *item = getInFifo(&systemFifo);
+
+		if (item->type == FIFO_TYPE_TIMER)
+		{
+			void (*callback)() = item->pointer;
+			callback();
+		}
+
+		io_hlt();
+	}
+}
 
 void HariMain(void)
 {
@@ -14,34 +64,80 @@ void HariMain(void)
 	struct MemoryManager *memoryManager = getMemoryManager();
 	initMemoryManage(memoryManager);
 
+	initSystemTimerManager();
+
 	struct Sheet *rootSheet = initRootSheet();
 	rootSheet->index = 999;
 	initMouseCursorSheet(rootSheet);
 	initDesktop(rootSheet);
 	createWindow(rootSheet, 60, 60, 80, 80, "Father1");
 	struct Sheet *win = createWindow(rootSheet, 30, 30, 200, 100, "Father2");
-	// forceUpdateSheet(win);
-
 	createWindow(win, 5, 5 + 18, 180, 40, "Son1");
 
-	// updateIndexMap(win);
-	// updateIndexMap(rootSheet);
-	// forceUpdateSheet(win);
-	// createWindow(win, 20, 20, 80, 40, "Son2");
-	// createWindow(rootSheet, 150, 120, 150, 60, "HelloForm3");
+	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
+	setFixedBottom(statusLabel);
 
-	// updateAllSubsheet(rootSheet);
+	setSystemTimer(50, &showSomething);
 
-	// char s4[32];
-	// sprintf(s4, "%dMB %dByte", getUnusedMemoryTotal(memoryManager) / (1024 * 1024), getUnusedMemoryTotal(memoryManager));
-	// // printInSheet(sheet, 0, 0, s4, COL8_FFFFFF);
-	// putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 16, COL8_FFFFFF, s4);
-
-	io_out8(PIC0_IMR, 0xf9);
+	init_pit();
+	io_out8(PIC0_IMR, 0xf8);
 	io_out8(PIC1_IMR, 0xef);
 
 	initKeyboard();
 	enableMouse();
+
+	struct Task *task_a = initTask(memoryManager);
+	systemFifo.task = task_a;
+	// load_tr(task_a->sel << 3);
+	runTask(task_a, 1, 10);
+	// farjmp(0, task_a->sel);
+
+	struct Task *task_b[3];
+	for (i = 0; i < 3; i++)
+	{
+		task_b[i] = allocaTask();
+		task_b[i]->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
+		task_b[i]->tss.eip = (int)&task_b_main;
+		task_b[i]->tss.es = 1 * 8;
+		task_b[i]->tss.cs = 2 * 8;
+		task_b[i]->tss.ss = 1 * 8;
+		task_b[i]->tss.ds = 1 * 8;
+		task_b[i]->tss.fs = 1 * 8;
+		task_b[i]->tss.gs = 1 * 8;
+		runTask(task_b[i], 2, i + 1);
+	}
+
+	// int task_b_esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024;
+	// struct Tss tss_a, tss_b;
+	// tss_a.ldtr = 0;
+	// tss_a.iomap = 0x40000000;
+	// tss_b.ldtr = 0;
+	// tss_b.iomap = 0x40000000;
+
+	// struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
+	// set_segmdesc(gdt + 3, 103, (int)&tss_a, AR_TSS32);
+	// set_segmdesc(gdt + 4, 103, (int)&tss_b, AR_TSS32);
+
+	// tss_b.eip = (int)&task_b_main;
+	// tss_b.eflags = 0x00000202; /* IF = 1; */
+	// tss_b.eax = 0;
+	// tss_b.ecx = 0;
+	// tss_b.edx = 0;
+	// tss_b.ebx = 0;
+	// tss_b.esp = task_b_esp;
+	// tss_b.ebp = 0;
+	// tss_b.esi = 0;
+	// tss_b.edi = 0;
+	// tss_b.es = 1 * 8;
+	// tss_b.cs = 2 * 8;
+	// tss_b.ss = 1 * 8;
+	// tss_b.ds = 1 * 8;
+	// tss_b.fs = 1 * 8;
+	// tss_b.gs = 1 * 8;
+
+	// load_tr(3 * 8);
+
+	// setSystemTimer(300, &switchT);
 
 	while (1)
 	{
@@ -49,48 +145,37 @@ void HariMain(void)
 		struct FifoItem *item = getInFifo(&systemFifo);
 		if (item == NULL)
 		{
+			// if (timerDev % 100 == 0)
+			// {
+			// 	char s4[32];
+			// 	sprintf(s4, "(%d)",
+			// 			timerDev);
+			// 	setLabelText(statusLabel, s4, COL8_FFFFFF);
+			// }
+
 			io_stihlt();
 		}
-		else
+		else if (item->type != NULL)
 		{
 			io_sti();
 			if (item->type == FIFO_TYPE_KEYBOARD)
 			{
 				char s4[32];
 				sprintf(s4, "%02X", item->data);
-				// printInSheet(sheet, 0, 0, s4, COL8_FFFFFF);
-				fillInSheet(rootSheet->bottomSheet, 0, 16, 16, 16, COL8_000000);
-				printInSheet(rootSheet->bottomSheet, 0, 16, s4, COL8_FFFFFF);
+				setLabelText(statusLabel, s4, COL8_FFFFFF);
 			}
 			else if (item->type == FIFO_TYPE_MOUSE)
 			{
 				if (putInMouseData(&mouseData, item->data) == 1)
 				{
 					updateMouseCursorSheet(mouseData.moveX, mouseData.moveY);
-
-					// struct Sheet *cs = rootSheet->sheetStore[rootSheet->indexMap[mouseData.y * rootSheet->width + (mouseData.x - 1)]];
 					int x = mouseData.x, y = mouseData.y;
 					struct Sheet *cs = rootSheet->sheetStore[rootSheet->indexMap[y * rootSheet->width + (x - 1)]];
-					// while (true)
-					// {
-					// 	x -= cs->x;
-					// 	y -= cs->y;
-					// 	if (cs->indexMap[y * cs->width + x] != 0)
-					// 	{
-					// 		cs = cs->indexMap[y * cs->width + x];
-					// 	}
-					// 	else
-					// 	{
-					// 		cs = cs->fatherSheet;
-					// 		break;
-					// 	}
-					// }
-					// cs = cs->topSheet;
 					x -= cs->x;
 					y -= cs->y;
 
 					char s4[32];
-					sprintf(s4, "%d-%d %d-%d %d %d %d %d",
+					sprintf(s4, "%d-%d %d-%d %d %d %d %d (%d)",
 							rootSheet->vram[mouseData.y * rootSheet->width + (mouseData.x - 1)],
 							rootSheet->indexMap[mouseData.y * rootSheet->width + (mouseData.x - 1)],
 							cs->vram[y * cs->width + (x - 1)],
@@ -98,14 +183,15 @@ void HariMain(void)
 							cs->index,
 							cs->fatherSheet->index,
 							x,
-							y
-
-					);
+							y,
+							get()->firstTimer->timerId);
+					setLabelText(statusLabel, s4, COL8_FFFFFF);
 
 					// if ((mouseData.btn & 0x01) == 0x01)
 					if (mouseData.btn == 0x01)
 					{
 						moveSheet(rootSheet->topSheet->nextSheet->nextSheet, mouseData.x, mouseData.y);
+						// setTimer(100, &showSomething);
 					}
 					// if ((mouseData.btn & 0x02) == 0x02)
 					if (mouseData.btn == 0x02)
@@ -119,19 +205,13 @@ void HariMain(void)
 					{
 						struct Sheet *cur = rootSheet->topSheet->nextSheet->nextSheet->nextSheet;
 						moveSheet(cur, mouseData.x - cur->fatherSheet->x, mouseData.y - cur->fatherSheet->y);
-
-						// struct Sheet *cur = rootSheet->topSheet->nextSheet->nextSheet->topSheet->nextSheet->nextSheet;
-						// moveSheet(cur, mouseData.x - cur->fatherSheet->x, mouseData.y - cur->fatherSheet->y);
-						// moveSheet(rootSheet->topSheet->nextSheet->nextSheet->nextSheet->nextSheet, mouseData.x, mouseData.y);
-					}
-
-					if (mouseData.btn == 3)
-					{
-						// struct Sheet *cur = rootSheet->topSheet->nextSheet->nextSheet->nextSheet;
-						// moveSheet(cur, mouseData.x - cur->fatherSheet->x, mouseData.y - cur->fatherSheet->y);
-						// moveSheet(rootSheet->topSheet->nextSheet->nextSheet->nextSheet->nextSheet, mouseData.x, mouseData.y);
 					}
 				}
+			}
+			else if (item->type == FIFO_TYPE_TIMER)
+			{
+				void (*callback)() = item->pointer;
+				callback();
 			}
 		}
 	}

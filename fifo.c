@@ -30,6 +30,14 @@ void putInFifo(struct Fifo *fifo, unsigned int type, unsigned int subtype, char 
     currentItem->subtype = subtype;
 
     fifo->size++;
+
+    if (fifo->task != 0)
+    {
+        if (fifo->task->flags != 2)
+        {
+            runTask(fifo->task, -1, 0);
+        }
+    }
 }
 
 struct FifoItem *getInFifo(struct Fifo *fifo)
@@ -48,4 +56,26 @@ struct FifoItem *getInFifo(struct Fifo *fifo)
 
     fifo->size--;
     return currentItem;
+}
+
+void putInFifoWithPointer(struct Fifo *fifo, unsigned int type, unsigned int subtype, unsigned int pointer)
+{
+    if (fifo->size == FIFO_MAX)
+    {
+        // return;
+        getInFifo(fifo);
+    }
+
+    struct FifoItem *currentItem = &(fifo->fifoItem[fifo->headIndex]);
+    fifo->headIndex++;
+    if (fifo->headIndex == FIFO_MAX)
+    {
+        fifo->headIndex = 0;
+    }
+
+    currentItem->pointer = pointer;
+    currentItem->type = type;
+    currentItem->subtype = subtype;
+
+    fifo->size++;
 }

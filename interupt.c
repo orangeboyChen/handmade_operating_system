@@ -1,5 +1,6 @@
 #include "interupt.h"
-
+#include "utils.h"
+#include "bootpack.h"
 void init_pic()
 {
     io_out8(PIC0_IMR, 0xff);
@@ -21,6 +22,14 @@ void init_pic()
     return;
 }
 
+void init_pit()
+{
+    io_out8(PIT_CTRL, 0x34);
+    io_out8(PIT_CNT0, 0x9c);
+    io_out8(PIT_CNT0, 0x2e);
+    return;
+}
+
 void inthandler21(int *esp)
 {
     unsigned char data;
@@ -37,5 +46,13 @@ void inthandler2c(int *esp)
     io_out8(PIC0_OCW2, 0x62);
     data = io_in8(PORT_KEYDAT);
     putInFifo(&systemFifo, FIFO_TYPE_MOUSE, NULL, data);
+    return;
+}
+
+void inthandler20(int *esp)
+{
+    io_out8(PIC0_OCW2, 0x60);
+
+    onSystemTimerTick();
     return;
 }

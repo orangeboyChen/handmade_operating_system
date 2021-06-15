@@ -1,16 +1,5 @@
 #include "window.h"
 
-unsigned int getStringSize(char *c)
-{
-    int i = 0;
-    while (*c != '\0')
-    {
-        c += 1;
-        i++;
-    }
-    return i;
-}
-
 struct Sheet *mouseSheet;
 void initMouseCursorSheet(struct Sheet *rootSheet)
 {
@@ -150,7 +139,16 @@ struct Sheet *createWindow(struct Sheet *fatherSheet, short x, short y, short wi
     fillVramByIndexMap(windowSheet);
     updateSheet(windowSheet);
 
-    printInSheet(statusSheet, width / 2 - getStringSize(title) * 8 / 2, 2, title, COL8_000000);
+    //标题
+    int labelX = width / 2 - getStringSize(title) * 8 / 2;
+    if (labelX <= 45)
+    {
+        labelX = 45;
+        title = "...";
+    }
+    struct Sheet *titleSheet = createLabelWithBackground(statusSheet, labelX, 2, getStringSize(title) * 8, 16, title, COL8_000000, COL8_FFFFFF);
+    updateSheet(windowSheet);
+    // printInSheet(statusSheet, width / 2 - getStringSize(title) * 8 / 2, 2, title, COL8_000000);
 
     // moveSheet(windowSheet, windowSheet->x, windowSheet->y);
 

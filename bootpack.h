@@ -7,9 +7,10 @@
 #include "interupt.h"
 #include "sheet.h"
 #include "common.h"
+#include "widget.h"
 #include <stdio.h>
 #include <string.h>
-
+void showSomething();
 //boot
 struct BootInfo
 {
@@ -21,12 +22,5 @@ struct BootInfo
 struct BootInfo *getBootInfo();
 struct MemoryManager *getMemoryManager();
 void logger(char *c, unsigned int y);
-
-//task.c
-struct Task
-{
-    int id;
-    struct Sheet *sheet;
-};
 
 #endif

@@ -3,13 +3,17 @@
 
 #include "fifo.h"
 #include "common.h"
+#include "task.h"
 
 #include <string.h>
 #include <stdio.h>
 
 #define FIFO_MAX 512
+
+//type
 #define FIFO_TYPE_KEYBOARD 0
 #define FIFO_TYPE_MOUSE 1
+#define FIFO_TYPE_TIMER 2
 
 //subtype
 //--mouse
@@ -22,6 +26,7 @@ struct FifoItem
     unsigned int type;
     unsigned int subtype;
     unsigned char data;
+    unsigned int pointer;
 };
 
 struct Fifo
@@ -30,9 +35,11 @@ struct Fifo
     unsigned int headIndex;
     unsigned int tailIndex;
     unsigned int size;
+    struct Task *task;
 };
 void initFifo(struct Fifo *fifo);
 void putInFifo(struct Fifo *fifo, unsigned int type, unsigned int subtype, char data);
+void putInFifoWithPointer(struct Fifo *fifo, unsigned int type, unsigned int subtype, unsigned int pointer);
 struct FifoItem *getInFifo(struct Fifo *fifo);
 
 #endif

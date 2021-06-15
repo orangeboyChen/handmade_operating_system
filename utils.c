@@ -1,5 +1,16 @@
 #include "bootpack.h"
 #include "memory.h"
+unsigned int getStringSize(char *c)
+{
+    int i = 0;
+    while (*c != '\0')
+    {
+        c += 1;
+        i++;
+    }
+    return i;
+}
+
 void initPalette(void)
 {
     static unsigned char table_rgb[16 * 3] = {

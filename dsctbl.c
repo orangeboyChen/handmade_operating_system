@@ -12,6 +12,7 @@ void init_gdtidt()
 	}
 	set_segmdesc(gdt + 1, 0xffffffff, 0x00000000, AR_DATA32_RW);
 	set_segmdesc(gdt + 2, LIMIT_BOTPAK, ADR_BOTPAK, AR_CODE32_ER);
+
 	load_gdtr(LIMIT_GDT, ADR_GDT);
 
 	for (i = 0; i <= LIMIT_IDT / 8; i++)
@@ -20,6 +21,7 @@ void init_gdtidt()
 	}
 	load_idtr(LIMIT_IDT, ADR_IDT);
 
+	set_gatedesc(idt + 0x20, (int)asm_inthandler20, 2 * 8, AR_INTGATE32);
 	set_gatedesc(idt + 0x21, (int)asm_inthandler21, 2 * 8, AR_INTGATE32);
 	set_gatedesc(idt + 0x27, (int)asm_inthandler27, 2 * 8, AR_INTGATE32);
 	set_gatedesc(idt + 0x2c, (int)asm_inthandler2c, 2 * 8, AR_INTGATE32);

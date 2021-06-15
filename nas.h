@@ -12,9 +12,14 @@ void load_gdtr(int limit, int addr);
 void load_idtr(int limit, int addr);
 int load_cr0(void);
 void store_cr0(int cr0);
-void asm_inthandler21(void);
-void asm_inthandler27(void);
-void asm_inthandler2c(void);
+void load_tr(int tr);
 unsigned int memtest_sub(unsigned int start, unsigned int end);
+
+void asm_inthandler21();
+void asm_inthandler27();
+void asm_inthandler2c();
+void asm_inthandler20();
+
+void farjmp(int eip, int cs);
 
 #endif
