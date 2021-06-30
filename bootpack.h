@@ -21,6 +21,8 @@ struct BootInfo
 
 struct BootInfo *getBootInfo();
 struct MemoryManager *getMemoryManager();
-void logger(char *c, unsigned int y);
+void task_b_main();
+
+extern struct Sheet *statusLabel;
 
 #endif

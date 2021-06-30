@@ -39,6 +39,7 @@ struct TaskManager
     char isNeedChangeLevel;
     struct TaskLevel level[TASK_LEVEL_MAX];
     struct Task taskStore[TASK_MAX];
+    struct Task *currentTask;
 };
 
 void switchTask();

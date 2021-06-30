@@ -5,6 +5,7 @@
 #include "memory.h"
 #include "fifo.h"
 #define TIMER_MAX 512
+
 struct Timer
 {
     unsigned long countdown;
@@ -24,6 +25,7 @@ struct TimerManager
     void (*onTick)();
     struct Fifo *fifo;
 };
+extern struct TimerManager *systemTimerManager;
 struct TimerManager *get();
 void initSystemTimerManager();
 void onSystemTimerTick();

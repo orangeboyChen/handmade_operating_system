@@ -52,7 +52,6 @@ void inthandler2c(int *esp)
 void inthandler20(int *esp)
 {
     io_out8(PIC0_OCW2, 0x60);
-
     onSystemTimerTick();
     return;
 }

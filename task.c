@@ -14,7 +14,7 @@ struct Task *initTask(struct MemoryManager *memoryManager)
     {
         taskManager->taskStore[i].flags = 0;
         taskManager->taskStore[i].sel = (TASK_GDT0 + i) << 3;
-        set_segmdesc(gdt + TASK_GDT0 + i, 103, &taskManager->taskStore[i].tss, AR_TSS32);
+        set_segmdesc(gdt + TASK_GDT0 + i, 103, (int)&taskManager->taskStore[i].tss, AR_TSS32);
     }
 
     for (i = 0; i < TASK_LEVEL_MAX; i++)
@@ -32,7 +32,12 @@ struct Task *initTask(struct MemoryManager *memoryManager)
     addTask(task);
     switchTaskLevel();
     load_tr(task->sel);
-    taskTimer = setSystemTimer(task->priority, &switchTask);
+    taskManager->currentTask = task;
+    unsigned int id = setSystemTimer(task->priority, &switchTask);
+    // char s4[32];
+    // sprintf(s4, "-%d-",
+    //         id);
+    // setLabelText(statusLabel, s4, COL8_FFFFFF);
     return task;
 }
 
@@ -60,6 +65,8 @@ void runTask(struct Task *task, int level, int priority)
     }
 
     taskManager->isNeedChangeLevel = true;
+    // setLabelText(statusLabel, "123", COL8_000000);
+
     return;
 }
 
@@ -88,7 +95,7 @@ void removeTask(struct Task *task)
     struct Task *currentTask = taskLevel->headTask;
     if (currentTask == task)
     {
-        if (currentTask->nextTaskOfLevel == NULL)
+        if (currentTask->nextTaskOfLevel == NULL || currentTask->nextTaskOfLevel == currentTask)
         {
             taskLevel->headTask = NULL;
             taskLevel->tailTask = NULL;
@@ -150,7 +157,7 @@ struct Task *allocaTask()
 void switchTaskLevel()
 {
     int i;
-    for (i = 0; i < TASK_LEVEL_MAX; i++)
+    for (i = TASK_LEVEL_MAX - 1; i >= 0; i--)
     {
         if (taskManager->level[i].runningTaskCount > 0)
         {
@@ -159,7 +166,7 @@ void switchTaskLevel()
     }
 
     taskManager->currentLevel = i;
-    taskManager->isNeedChangeLevel = true;
+    taskManager->isNeedChangeLevel = false;
     return;
 }
 
@@ -187,20 +194,63 @@ struct Task *getCurrentTask()
 
 void switchTask()
 {
+
+    switchTaskLevel();
     struct TaskLevel *taskLevel = &taskManager->level[taskManager->currentLevel];
-    struct Task *newTask, *currentTask = taskLevel->headTask;
+    struct Task *currentTask = taskLevel->headTask;
+    setSystemTimer(currentTask->priority, &switchTask);
 
-    if (taskManager->isNeedChangeLevel)
+    if (taskLevel == NULL || currentTask == NULL)
     {
-        switchTaskLevel();
-        taskLevel = &taskManager->level[taskManager->currentLevel];
+        return;
     }
 
-    newTask = taskLevel->headTask;
+    // char c[32];
+    // sprintf(c, "%d %d %d", currentTask->nextTaskOfLevel->sel / 8, currentTask->sel / 8, currentTask->level);
+    // setLabelText(statusLabel, c, COL8_848400);
 
-    setSystemTimer(newTask->priority, &switchTask);
-    if (newTask != currentTask)
+    // setSystemTimer(1000, &switchTask);
+
+    // if (currentTask == taskLevel->tailTask)
+    // {
+    //     removeTask(currentTask);
+    //     if (currentTask->level > 1)
+    //     {
+    //         currentTask->level--;
+    //     }
+    //     addTask(currentTask);
+    // }
+    removeTask(currentTask);
+    if (currentTask->level > 1)
     {
-        farjmp(0, newTask->sel);
+        currentTask->level--;
     }
+    addTask(currentTask);
+
+    if (taskManager->currentTask != currentTask)
+    {
+        taskManager->currentTask = currentTask;
+        farjmp(0, currentTask->sel);
+    }
+
+    return;
+
+    // struct Task *newTask, *currentTask = taskLevel->headTask;
+
+    // if (taskManager->isNeedChangeLevel)
+    // {
+    //     switchTaskLevel();
+    //     taskLevel = &taskManager->level[taskManager->currentLevel];
+    // }
+
+    // newTask = taskLevel->headTask;
+
+    // if (newTask != currentTask)
+    // {
+    //     // if (newTask->level == 32)
+    //     // {
+    //     //     farjmp(0, newTask->sel);
+    //     // }
+    //     // farjmp(0, newTask->sel);
+    // }
 }

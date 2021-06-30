@@ -22,32 +22,14 @@ void switchT();
 
 void switchT()
 {
-	setSystemTimer(2, &switchA);
+	setSystemTimer(1, &switchA);
 	farjmp(0, 4 * 8);
 }
 
 void switchA()
 {
-	setSystemTimer(6, &switchT);
+	setSystemTimer(1, &switchT);
 	farjmp(0, 3 * 8);
-}
-
-void task_b_main()
-{
-	while (true)
-	{
-		setLabelText(statusLabel, "taskb", COL8_000000);
-
-		struct FifoItem *item = getInFifo(&systemFifo);
-
-		if (item->type == FIFO_TYPE_TIMER)
-		{
-			void (*callback)() = item->pointer;
-			callback();
-		}
-
-		io_hlt();
-	}
 }
 
 void HariMain(void)
@@ -64,20 +46,19 @@ void HariMain(void)
 	struct MemoryManager *memoryManager = getMemoryManager();
 	initMemoryManage(memoryManager);
 
-	initSystemTimerManager();
-
 	struct Sheet *rootSheet = initRootSheet();
 	rootSheet->index = 999;
 	initMouseCursorSheet(rootSheet);
 	initDesktop(rootSheet);
 	createWindow(rootSheet, 60, 60, 80, 80, "Father1");
-	struct Sheet *win = createWindow(rootSheet, 30, 30, 200, 100, "Father2");
-	createWindow(win, 5, 5 + 18, 180, 40, "Son1");
+	// struct Sheet *win = createWindow(rootSheet, 30, 30, 200, 100, "Father2");
+	// createWindow(win, 5, 5 + 18, 180, 40, "Son1");
 
 	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
+
 	setFixedBottom(statusLabel);
 
-	setSystemTimer(50, &showSomething);
+	initSystemTimerManager();
 
 	init_pit();
 	io_out8(PIC0_IMR, 0xf8);
@@ -88,9 +69,7 @@ void HariMain(void)
 
 	struct Task *task_a = initTask(memoryManager);
 	systemFifo.task = task_a;
-	// load_tr(task_a->sel << 3);
-	runTask(task_a, 1, 10);
-	// farjmp(0, task_a->sel);
+	runTask(task_a, 1, 100);
 
 	struct Task *task_b[3];
 	for (i = 0; i < 3; i++)
@@ -104,7 +83,7 @@ void HariMain(void)
 		task_b[i]->tss.ds = 1 * 8;
 		task_b[i]->tss.fs = 1 * 8;
 		task_b[i]->tss.gs = 1 * 8;
-		runTask(task_b[i], 2, i + 1);
+		runTask(task_b[i], 1, 10);
 	}
 
 	// int task_b_esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024;
@@ -117,6 +96,7 @@ void HariMain(void)
 	// struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
 	// set_segmdesc(gdt + 3, 103, (int)&tss_a, AR_TSS32);
 	// set_segmdesc(gdt + 4, 103, (int)&tss_b, AR_TSS32);
+	// load_tr(3 * 8);
 
 	// tss_b.eip = (int)&task_b_main;
 	// tss_b.eflags = 0x00000202; /* IF = 1; */
@@ -135,16 +115,25 @@ void HariMain(void)
 	// tss_b.fs = 1 * 8;
 	// tss_b.gs = 1 * 8;
 
-	// load_tr(3 * 8);
-
+	// setSystemTimer(100, &switchT);
 	// setSystemTimer(300, &switchT);
+	// setSystemTimer(500, &switchT);
+	// setSystemTimer(700, &switchT);
+	// setSystemTimer(900, &switchT);
 
+	// int timerDev = 0;
 	while (1)
 	{
-		io_cli();
+		// io_cli();
+		// setLabelText(statusLabel, "main", COL8_000000);
 		struct FifoItem *item = getInFifo(&systemFifo);
+
+		// char c[32];
+		// sprintf(c, "%ds", systemTimerManager->currentTime);
+		// setLabelText(statusLabel, c, COL8_848400);
 		if (item == NULL)
 		{
+			// timerDev++;
 			// if (timerDev % 100 == 0)
 			// {
 			// 	char s4[32];
@@ -160,51 +149,51 @@ void HariMain(void)
 			io_sti();
 			if (item->type == FIFO_TYPE_KEYBOARD)
 			{
-				char s4[32];
-				sprintf(s4, "%02X", item->data);
-				setLabelText(statusLabel, s4, COL8_FFFFFF);
+				// char s4[32];
+				// sprintf(s4, "%02X", item->data);
+				// setLabelText(statusLabel, s4, COL8_FFFFFF);
 			}
 			else if (item->type == FIFO_TYPE_MOUSE)
 			{
 				if (putInMouseData(&mouseData, item->data) == 1)
 				{
 					updateMouseCursorSheet(mouseData.moveX, mouseData.moveY);
-					int x = mouseData.x, y = mouseData.y;
-					struct Sheet *cs = rootSheet->sheetStore[rootSheet->indexMap[y * rootSheet->width + (x - 1)]];
-					x -= cs->x;
-					y -= cs->y;
+					// int x = mouseData.x, y = mouseData.y;
+					// struct Sheet *cs = rootSheet->sheetStore[rootSheet->indexMap[y * rootSheet->width + (x - 1)]];
+					// x -= cs->x;
+					// y -= cs->y;
 
-					char s4[32];
-					sprintf(s4, "%d-%d %d-%d %d %d %d %d (%d)",
-							rootSheet->vram[mouseData.y * rootSheet->width + (mouseData.x - 1)],
-							rootSheet->indexMap[mouseData.y * rootSheet->width + (mouseData.x - 1)],
-							cs->vram[y * cs->width + (x - 1)],
-							cs->indexMap[y * cs->width + (x - 1)],
-							cs->index,
-							cs->fatherSheet->index,
-							x,
-							y,
-							get()->firstTimer->timerId);
-					setLabelText(statusLabel, s4, COL8_FFFFFF);
+					// char s4[32];
+					// sprintf(s4, "%d-%d %d-%d %d %d %d %d (%d)",
+					// 		rootSheet->vram[mouseData.y * rootSheet->width + (mouseData.x - 1)],
+					// 		rootSheet->indexMap[mouseData.y * rootSheet->width + (mouseData.x - 1)],
+					// 		cs->vram[y * cs->width + (x - 1)],
+					// 		cs->indexMap[y * cs->width + (x - 1)],
+					// 		cs->index,
+					// 		cs->fatherSheet->index,
+					// 		x,
+					// 		y,
+					// 		get()->firstTimer->timerId);
+					// setLabelText(statusLabel, s4, COL8_FFFFFF);
 
 					// if ((mouseData.btn & 0x01) == 0x01)
 					if (mouseData.btn == 0x01)
 					{
-						moveSheet(rootSheet->topSheet->nextSheet->nextSheet, mouseData.x, mouseData.y);
+						// moveSheet(rootSheet->topSheet->nextSheet->nextSheet, mouseData.x, mouseData.y);
 						// setTimer(100, &showSomething);
 					}
 					// if ((mouseData.btn & 0x02) == 0x02)
 					if (mouseData.btn == 0x02)
 					{
 						struct Sheet *cur = rootSheet->topSheet->nextSheet->nextSheet->topSheet->nextSheet;
-						moveSheet(cur, mouseData.x - cur->fatherSheet->x, mouseData.y - cur->fatherSheet->y);
+						// moveSheet(cur, mouseData.x - cur->fatherSheet->x, mouseData.y - cur->fatherSheet->y);
 					}
 
 					// if ((mouseData.btn & 0x04) == 0x04)
 					if (mouseData.btn == 0x04)
 					{
 						struct Sheet *cur = rootSheet->topSheet->nextSheet->nextSheet->nextSheet;
-						moveSheet(cur, mouseData.x - cur->fatherSheet->x, mouseData.y - cur->fatherSheet->y);
+						// moveSheet(cur, mouseData.x - cur->fatherSheet->x, mouseData.y - cur->fatherSheet->y);
 					}
 				}
 			}
@@ -213,6 +202,25 @@ void HariMain(void)
 				void (*callback)() = item->pointer;
 				callback();
 			}
+		}
+	}
+}
+
+void task_b_main()
+{
+	while (true)
+	{
+		setLabelText(statusLabel, "taskb==", COL8_000000);
+		// io_hlt();
+
+		struct FifoItem *item = getInFifo(&systemFifo);
+
+		// // io_hlt();
+
+		if (item->type == FIFO_TYPE_TIMER)
+		{
+			void (*callback)() = item->pointer;
+			callback();
 		}
 	}
 }

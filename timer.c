@@ -1,9 +1,9 @@
 #include "timer.h"
-
+#include "bootpack.h"
 struct TimerManager *systemTimerManager;
-
 unsigned int setTimer(struct TimerManager *timerManager, unsigned long countdown, void (*onTimerStopCallback)())
 {
+
     struct Timer *timer = getTimerInstance(timerManager);
     timer->countdown = countdown;
     timer->targetTime = timerManager->currentTime + countdown;
@@ -28,27 +28,29 @@ unsigned int setTimer(struct TimerManager *timerManager, unsigned long countdown
         timer->nextTimer = currentTimer->nextTimer;
         currentTimer->nextTimer = timer;
     }
+    // setLabelText(statusLabel, "222", COL8_000000);
 
     return timer->timerId;
 }
 
 struct TimerManager *createTimerManager(struct Fifo *fifo)
 {
-    systemTimerManager = allocaMemory(getMemoryManager(), sizeof(struct TimerManager));
+    struct TimerManager *timerManager = allocaMemory(getMemoryManager(), sizeof(struct TimerManager));
 
     int i;
     for (i = 0; i < TIMER_MAX; i++)
     {
-        systemTimerManager->timerStore[i].isUsing = false;
-        systemTimerManager->timerStore[i].timerId = i;
+        timerManager->timerStore[i].isUsing = false;
+        timerManager->timerStore[i].timerId = i;
     }
 
-    struct Timer *idleTimer = getTimerInstance(systemTimerManager);
+    struct Timer *idleTimer = getTimerInstance(timerManager);
     idleTimer->targetTime = 0xFFFFFFFFFFFFFFFF;
-    systemTimerManager->firstTimer = idleTimer;
-    systemTimerManager->lastTimer = idleTimer;
+    timerManager->firstTimer = idleTimer;
+    timerManager->lastTimer = idleTimer;
 
-    systemTimerManager->fifo = fifo;
+    timerManager->fifo = fifo;
+    return timerManager;
 }
 
 void initSystemTimerManager()
@@ -78,6 +80,7 @@ struct Timer *getTimerInstance(struct TimerManager *timerManager)
 
 void onTick(struct TimerManager *timerManager)
 {
+
     timerManager->currentTime++;
 
     if (timerManager->firstTimer->targetTime > timerManager->currentTime)
@@ -93,6 +96,11 @@ void onTick(struct TimerManager *timerManager)
             struct Timer *temp = currentTimer;
             currentTimer = currentTimer->nextTimer;
             timerManager->firstTimer = currentTimer;
+
+            // char s4[32];
+            // sprintf(s4, "(%d)",
+            //         temp->timerId);
+            // setLabelText(statusLabel, s4, COL8_FFFFFF);
 
             int isUsing = temp->isUsing;
             void (*callback)() = temp->onTimerStopCallback;
