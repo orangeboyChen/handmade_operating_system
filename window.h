@@ -37,5 +37,6 @@ void activeWindow(struct Window *window);
 void disactiveWindow(struct Window *window);
 void fillWindowBackground(struct Window *window, unsigned int color);
 void onWindowStatusBarClick(struct Sheet *this, unsigned int x, unsigned int y);
-
+void activeSheetWindow(struct Sheet *sheet);
+void disactiveSheetWindow(struct Sheet *sheet);
 #endif

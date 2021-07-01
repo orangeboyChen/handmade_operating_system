@@ -49,7 +49,7 @@ struct Sheet
     struct ActionManager *actionManager;
 
     //控制的window
-    // struct Window *fatherWindow;
+    struct Window *fatherWindow;
 
     // struct SheetManager *subSheetManager;
 };
@@ -87,4 +87,6 @@ void fillVramByIndexMap(struct Sheet *sheet);
 void moveSheet(struct Sheet *sheet, short x1, short y1);
 void updatePartOfIndexMap(struct Sheet *sheet, short fromX, short fromY, short toX, short toY);
 void fillPartOfVramByIndexMap(struct Sheet *sheet, short fromX, short fromY, short toX, short toY);
+void onBackgroundClick();
+void moveSheetToTop(struct Sheet *sheet);
 #endif

@@ -27,7 +27,18 @@ struct Sheet *initRootSheet()
     setFixedBottom(backgroundSheet);
     forceUpdateSheet(backgroundSheet);
 
+    //添加事件
+    backgroundSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+    backgroundSheet->actionManager->onClick = &onBackgroundClick;
+
     return rootSheet;
+}
+
+void onBackgroundClick()
+{
+    disactiveSheetWindow(windowsManager.currentActiveWindow->sheet);
+    windowsManager.currentActiveWindow = NULL;
+    setLabelText(rootSheetManager.titleLabel, "Desktop", COL8_000000);
 }
 
 struct Sheet *createSubsheetToTop(struct Sheet *fatherSheet, short x, short y, short width, short height)
@@ -522,6 +533,69 @@ char getFixedTop(struct Sheet *sheet)
 char getFixedBottom(struct Sheet *sheet)
 {
     return (sheet->status & (1 << 6)) == 1 << 6;
+}
+
+void moveSheetToTop(struct Sheet *sheet)
+{
+    struct Sheet *fatherSheet = sheet->fatherSheet;
+
+    struct Sheet *currentSheet = fatherSheet->topSheet;
+    while (currentSheet->nextSheet != NULL)
+    {
+        if (currentSheet == sheet)
+        {
+            currentSheet = currentSheet->nextSheet;
+            continue;
+        }
+        if (currentSheet->nextSheet == NULL || getFixedTop(currentSheet) == false)
+        {
+            break;
+        }
+        currentSheet = currentSheet->nextSheet;
+    }
+
+    if (sheet->previousSheet != NULL)
+    {
+        sheet->previousSheet->nextSheet = sheet->nextSheet;
+    }
+
+    if (sheet->nextSheet != NULL)
+    {
+        sheet->nextSheet->previousSheet = sheet->previousSheet;
+    }
+
+    sheet->previousSheet = currentSheet->previousSheet;
+    sheet->nextSheet = currentSheet;
+
+    if (sheet->previousSheet != NULL)
+    {
+        sheet->previousSheet->nextSheet = sheet;
+    }
+
+    if (sheet->nextSheet != NULL)
+    {
+        sheet->nextSheet->previousSheet = sheet;
+    }
+
+    if (sheet->nextSheet == sheet)
+    {
+        sheet->nextSheet = NULL;
+    }
+
+    if (sheet->previousSheet == sheet)
+    {
+        sheet->previousSheet = NULL;
+    }
+
+    unsigned int toX = sheet->x + sheet->width - 1 > fatherSheet->width ? fatherSheet->width : sheet->x + sheet->width - 1;
+    unsigned int toY = sheet->y + sheet->height - 1 > fatherSheet->height ? fatherSheet->height : sheet->y + sheet->height - 1;
+
+    updatePartOfIndexMap(fatherSheet, sheet->x, sheet->y, toX, toY);
+    // updatePartOfIndexMap(fatherSheet, sheet->nextSheet->x, sheet->nextSheet->y,
+    //                      sheet->nextSheet->x + sheet->nextSheet->width, sheet->nextSheet->y + sheet->nextSheet->height);
+    // updateIndexMapAndActionMap(fatherSheet);
+    fillVramByIndexMap(fatherSheet);
+    updateSheet(fatherSheet);
 }
 
 void setFixedTop(struct Sheet *sheet)

@@ -8,10 +8,10 @@ struct Sheet *statusLabel;
 int i = 0;
 struct Window *faWin;
 
-void onCloseClick()
-{
-	setLabelText(statusLabel, "closeClick", COL8_000000);
-}
+// void onCloseClick()
+// {
+// 	setLabelText(statusLabel, "closeClick", COL8_000000);
+// }
 
 void onMouseDown()
 {
@@ -70,17 +70,15 @@ void HariMain(void)
 	// fatherWindow->statusBarSheet->actionManager->onClick = &onStatusClick;
 
 	fatherWindow->closeButtonSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
-	fatherWindow->closeButtonSheet->actionManager->onClick = &onCloseClick;
-
-	// fatherWindow->closeButtonSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
-	// fatherWindow->closeButtonSheet->actionManager->onMouseLeftDown = &onMouseDown;
-	// fatherWindow->closeButtonSheet->actionManager->onMouseLeftUp = &onMouseUp;
+	fatherWindow->closeButtonSheet->actionManager->onMouseLeftDown = &onMouseDown;
+	fatherWindow->closeButtonSheet->actionManager->onMouseLeftUp = &onMouseUp;
 
 	// fatherWindow->backgroundSheet->actionManager = fatherWindow->statusBarSheet->actionManager;
 	// fatherWindow->backgroundOfButtonSheet->actionManager = fatherWindow->statusBarSheet->actionManager;
 	// fatherWindow->titleSheet->actionManager = fatherWindow->statusBarSheet->actionManager;
 
-	struct Window *win = createWindow(fatherWindow->sheet, 30, 30, 100, 60, "Fa");
+	struct Window *win = createWindow(rootSheet, 30, 30, 100, 60, "Father");
+	struct Window *win2 = createWindow(rootSheet, 60, 60, 200, 60, "Fatheraaa");
 
 	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
 	setFixedBottom(statusLabel);

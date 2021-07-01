@@ -96,7 +96,7 @@ void initDesktop(struct Sheet *rootSheet)
 
     // char s[64];
     // sprintf(s, "%d %uMB", desktopSheet->nextSheet->index, getUnusedMemoryTotal(getMemoryManager()) / (1024 * 1024));
-    struct Sheet *titleSheet = createLabel(desktopStatusSheet, 0, 0, 64, 16, "E", COL8_000000);
+    struct Sheet *titleSheet = createLabel(desktopStatusSheet, 8, 0, 128, 16, "Desktop", COL8_000000);
     rootSheetManager.titleLabel = titleSheet;
     // printInSheet(desktopSheet, 8, 0, "Explorer", COL8_000000);
 
@@ -113,12 +113,12 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
 
     struct Sheet *windowSheet = createSubsheetToTop(fatherSheet, x, y, width, height);
     window->sheet = windowSheet;
-    // windowSheet->fatherWindow = window;
+    windowSheet->fatherWindow = window;
 
     //背景图层
     struct Sheet *backgroundSheet = createSubsheetToTop(windowSheet, 0, 0, width, height);
     window->backgroundSheet = backgroundSheet;
-    // backgroundSheet->fatherWindow = window;
+    backgroundSheet->fatherWindow = window;
 
     fillInSheet(backgroundSheet, 0, 0, width, height, COL8_FFFFFF);
     setFixedBottom(backgroundSheet);
@@ -126,7 +126,7 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
     //状态图层
     struct Sheet *statusSheet = createSubsheetToTop(windowSheet, 0, 0, width, height);
     window->statusBarSheet = statusSheet;
-    // statusSheet->fatherWindow = window;
+    statusSheet->fatherWindow = window;
 
     fillInSheet(statusSheet, 1, 19, width - 2, height - 19, COL_TRANSPARENT);
     fillInSheet(statusSheet, 1, 1, width - 2, 17, COL8_FFFFFF);
@@ -143,8 +143,8 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
     struct Sheet *backgroundOfButtonSheet = createSubsheetToTop(buttonSheet, 0, 0, 50, 8);
     window->buttonSheet = buttonSheet;
     window->backgroundOfButtonSheet = backgroundOfButtonSheet;
-    // buttonSheet->fatherWindow = window;
-    // backgroundOfButtonSheet->fatherWindow = window;
+    buttonSheet->fatherWindow = window;
+    backgroundOfButtonSheet->fatherWindow = window;
     fillVram(backgroundOfButtonSheet, COL8_FFFFFF);
     setFixedBottom(backgroundOfButtonSheet);
 
@@ -171,16 +171,21 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
 
     //标题
     int labelX = width / 2 - getStringSize(title) * 8 / 2;
+    struct Sheet *titleSheet;
     if (labelX <= 45)
     {
         labelX = 45;
-        title = "...";
+        // title = "...";
+        titleSheet = createLabelWithBackground(statusSheet, labelX, 2, getStringSize("...") * 8, 16, "...", COL8_000000, COL8_FFFFFF);
     }
-    struct Sheet *titleSheet = createLabelWithBackground(statusSheet, labelX, 2, getStringSize(title) * 8, 16, title, COL8_000000, COL8_FFFFFF);
+    else
+    {
+        titleSheet = createLabelWithBackground(statusSheet, labelX, 2, getStringSize(title) * 8, 16, title, COL8_000000, COL8_FFFFFF);
+    }
     window->titleSheet = titleSheet;
     window->title = title;
 
-    // titleSheet->fatherWindow = window;
+    titleSheet->fatherWindow = window;
     updateSheet(windowSheet);
 
     //添加事件
@@ -188,8 +193,10 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
     window->statusBarSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
     window->closeButtonSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
 
-    // window->sheet->actionManager->onClick = &activeWindow;
+    window->sheet->actionManager->onClick = &activeSheetWindow;
     window->statusBarSheet->actionManager->onClick = &onWindowStatusBarClick;
+
+    activeSheetWindow(window->sheet);
 
     return window;
 }
@@ -202,8 +209,6 @@ void onWindowStatusBarClick(struct Sheet *this, unsigned int x, unsigned int y)
         int moveY = mouseData.y - mouseData.preY;
 
         moveSheet(this->fatherSheet, this->fatherSheet->x + moveX, this->fatherSheet->y + moveY);
-
-        // setLabelText(desktopTitleSheet, this->fatherWindow, COL8_000000);
     }
     else
     {
@@ -211,8 +216,31 @@ void onWindowStatusBarClick(struct Sheet *this, unsigned int x, unsigned int y)
     }
 }
 
+void activeSheetWindow(struct Sheet *sheet)
+{
+    activeWindow(sheet->fatherWindow);
+    moveSheetToTop(sheet->fatherWindow->sheet);
+    setLabelText(rootSheetManager.titleLabel, sheet->fatherWindow->title, COL8_000000);
+}
+
+void disactiveSheetWindow(struct Sheet *sheet)
+{
+    disactiveWindow(sheet->fatherWindow);
+}
+
 void activeWindow(struct Window *window)
 {
+    struct Window *previousActiveWindow = windowsManager.currentActiveWindow;
+    if (previousActiveWindow == window)
+    {
+        return;
+    }
+
+    if (previousActiveWindow != NULL)
+    {
+        disactiveWindow(previousActiveWindow);
+    }
+
     windowsManager.currentActiveWindow = window;
     fillWindowBackground(window, COL8_FFFFFF);
 }
@@ -241,7 +269,16 @@ void fillWindowBackground(struct Window *window, unsigned int color)
     fillVram(window->backgroundSheet, color);
 
     window->titleSheet->attribute[0] = color;
-    setLabelText(window->titleSheet, window->title, COL8_000000);
+    int labelX = width / 2 - getStringSize(window->title) * 8 / 2;
+    if (labelX <= 45)
+    {
+        setLabelText(window->titleSheet, "...", COL8_000000);
+    }
+    else
+    {
+        setLabelText(window->titleSheet, window->title, COL8_000000);
+    }
+    // setLabelText(window->titleSheet, window->title, COL8_000000);
 
     updateIndexMapAndActionMap(statusSheet);
     fillVramByIndexMap(statusSheet);
