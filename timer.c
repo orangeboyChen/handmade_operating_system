@@ -139,3 +139,8 @@ struct TimerManager *get()
 {
     return systemTimerManager;
 }
+
+long getSystemTime()
+{
+    return systemTimerManager->currentTime;
+}

@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "common.h"
+#include "action.h"
 
 #define SHEET_MAX 512
 
@@ -32,6 +33,7 @@ struct Sheet
     struct Sheet *topSheet;
     struct Sheet *bottomSheet;
     int *indexMap;
+    int *actionMap;
     char *updateMap;
 
     //子图层内存管理
@@ -43,8 +45,25 @@ struct Sheet
     //备用属性
     int attribute[128];
 
+    //动作事件
+    struct ActionManager *actionManager;
+
+    //控制的window
+    // struct Window *fatherWindow;
+
     // struct SheetManager *subSheetManager;
 };
+
+struct RootSheetManager
+{
+    struct Sheet *mouseSheet;
+    struct Sheet *backgroundSheet;
+    struct Sheet *desktopSheet;
+    struct Sheet *titleLabel;
+    struct Sheet *sheet;
+};
+
+extern struct RootSheetManager rootSheetManager;
 
 struct Sheet *initRootSheet();
 struct Sheet *createSubsheetToTop(struct Sheet *fatherSheet, short x, short y, short width, short height);
@@ -63,7 +82,7 @@ void fillInSheet(struct Sheet *sheet, short x, short y, short width, short heigh
 void updateAllSubsheetWithFather(struct Sheet *sheet, struct Sheet *fatherSheet);
 void updateAllSubsheet(struct Sheet *sheet);
 void updateSingleSheetIndexAndVramInFatherSheet(struct Sheet *sheet);
-void updateIndexMap(struct Sheet *sheet);
+void updateIndexMapAndActionMap(struct Sheet *sheet);
 void fillVramByIndexMap(struct Sheet *sheet);
 void moveSheet(struct Sheet *sheet, short x1, short y1);
 void updatePartOfIndexMap(struct Sheet *sheet, short fromX, short fromY, short toX, short toY);

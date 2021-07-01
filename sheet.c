@@ -1,9 +1,11 @@
 #include "sheet.h"
+struct RootSheetManager rootSheetManager;
 
 struct Sheet *initRootSheet()
 {
     struct BootInfo *bootInfo = getBootInfo();
     struct Sheet *rootSheet = (struct Sheet *)allocaMemory(getMemoryManager(), sizeof(struct Sheet));
+    rootSheetManager.sheet = rootSheet;
 
     rootSheet->x = 0;
     rootSheet->y = 0;
@@ -13,10 +15,12 @@ struct Sheet *initRootSheet()
     rootSheet->series = 999;
 
     rootSheet->indexMap = allocaMemory(getMemoryManager(), rootSheet->width * rootSheet->height * sizeof(int));
+    rootSheet->actionMap = allocaMemory(getMemoryManager(), rootSheet->width * rootSheet->height * sizeof(int));
     rootSheet->updateMap = allocaMemory(getMemoryManager(), (rootSheet->width * rootSheet->height - 1) / sizeof(char) + 1);
 
     //准备背景图层
     struct Sheet *backgroundSheet = createSubsheetToTop(rootSheet, 0, 0, rootSheet->width, rootSheet->height);
+    rootSheetManager.backgroundSheet = backgroundSheet;
 
     //刷新视图
     fillVram(backgroundSheet, COL8_840084);
@@ -40,6 +44,7 @@ struct Sheet *createSubsheetToTopWithVram(struct Sheet *fatherSheet, short x, sh
     newSheet->height = height;
     newSheet->vram = vram;
     newSheet->indexMap = allocaMemory(getMemoryManager(), width * height * sizeof(int));
+    newSheet->actionMap = allocaMemory(getMemoryManager(), width * height * sizeof(int));
 
     //按位存储节省空间
     newSheet->updateMap = allocaMemory(getMemoryManager(), (width * height - 1) / sizeof(char) + 1 + 1);
@@ -225,6 +230,7 @@ void updatePartOfIndexMap(struct Sheet *sheet, short fromX, short fromY, short t
         for (x = fromX; x <= toX; x++)
         {
             sheet->indexMap[y * sheet->width + x] = 0;
+            sheet->actionMap[y * sheet->width + x] = 0;
         }
     }
 
@@ -258,16 +264,17 @@ void updatePartOfIndexMap(struct Sheet *sheet, short fromX, short fromY, short t
                     {
                         sheet->indexMap[y * sheet->width + x] = TRANSPARENT_INDEX;
                     }
-
                     else
                     {
                         sheet->indexMap[y * sheet->width + x] = currentSheet->index;
                     }
+                    sheet->actionMap[y * sheet->width + x] = currentSheet->index;
                 }
 
                 if (currentSheet->vram[currentSheetIndex] == COL_FORCE_TRANSPARENT || currentSheet->indexMap[currentSheetIndex] == FORCE_TRANSPARENT_INDEX)
                 {
                     sheet->indexMap[y * sheet->width + x] = FORCE_TRANSPARENT_INDEX;
+                    sheet->actionMap[y * sheet->width + x] = FORCE_TRANSPARENT_INDEX;
                 }
             }
         }
@@ -281,12 +288,13 @@ void updatePartOfIndexMap(struct Sheet *sheet, short fromX, short fromY, short t
             if (sheet->indexMap[i * sheet->width + j] == FORCE_TRANSPARENT_INDEX)
             {
                 sheet->indexMap[i * sheet->width + j] = TRANSPARENT_INDEX;
+                sheet->actionMap[i * sheet->width + j] = TRANSPARENT_INDEX;
             }
         }
     }
 }
 
-void updateIndexMap(struct Sheet *sheet)
+void updateIndexMapAndActionMap(struct Sheet *sheet)
 {
     if (sheet->topSheet == NULL)
     {
@@ -296,6 +304,7 @@ void updateIndexMap(struct Sheet *sheet)
     // char *temp = allocaMemory(getMemoryManager(), sheet->height * sheet->width * sizeof(char));
 
     memset(sheet->indexMap, 0, sizeof(int) * sheet->height * sheet->width);
+    memset(sheet->actionMap, 0, sizeof(int) * sheet->height * sheet->width);
     struct Sheet *currentSheet = sheet->topSheet;
     while (currentSheet != NULL)
     {
@@ -316,16 +325,17 @@ void updateIndexMap(struct Sheet *sheet)
                     {
                         sheet->indexMap[y * sheet->width + x] = TRANSPARENT_INDEX;
                     }
-
                     else
                     {
                         sheet->indexMap[y * sheet->width + x] = currentSheet->index;
                     }
+                    sheet->actionMap[y * sheet->width + x] = currentSheet->index;
                 }
 
                 if (currentSheet->vram[currentSheetIndex] == COL_FORCE_TRANSPARENT || currentSheet->indexMap[currentSheetIndex] == FORCE_TRANSPARENT_INDEX)
                 {
                     sheet->indexMap[y * sheet->width + x] = FORCE_TRANSPARENT_INDEX;
+                    sheet->actionMap[y * sheet->width + x] = FORCE_TRANSPARENT_INDEX;
                 }
             }
         }
@@ -347,7 +357,7 @@ void updateIndexMap(struct Sheet *sheet)
 
 void forceUpdateSheet(struct Sheet *sheet)
 {
-    updateIndexMap(sheet->fatherSheet);
+    updateIndexMapAndActionMap(sheet->fatherSheet);
     int i, j;
     for (i = 0; i < sheet->height; i++)
     {
@@ -425,7 +435,7 @@ void updateSheetWithTransparent(struct Sheet *sheet, int isTransparent)
 
     if (isTransparent == true)
     {
-        updateIndexMap(fatherSheet);
+        updateIndexMapAndActionMap(fatherSheet);
     }
 
     int x, y;
@@ -508,6 +518,7 @@ char getFixedTop(struct Sheet *sheet)
 {
     return (sheet->status & (1 << 5)) == 1 << 5;
 }
+
 char getFixedBottom(struct Sheet *sheet)
 {
     return (sheet->status & (1 << 6)) == 1 << 6;
@@ -567,7 +578,7 @@ void setFixedTop(struct Sheet *sheet)
         sheet->previousSheet = NULL;
     }
 
-    updateIndexMap(fatherSheet);
+    updateIndexMapAndActionMap(fatherSheet);
 }
 
 void setFixedBottom(struct Sheet *sheet)
@@ -607,7 +618,7 @@ void setFixedBottom(struct Sheet *sheet)
     // sprintf(s4, "System is booting");
     // putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s4);
 
-    updateIndexMap(fatherSheet);
+    updateIndexMapAndActionMap(fatherSheet);
 }
 
 void printInSheet(struct Sheet *sheet, short x, short y, char *c, unsigned int colorConstant)

@@ -68,6 +68,8 @@ int putInMouseData(struct MouseData *mouseData, unsigned char data)
         mouseData->phase = 1;
 
         //解析鼠标数据
+        mouseData->preBtn = mouseData->btn;
+
         mouseData->btn = mouseData->data[0] & 0x07;
         mouseData->moveX = mouseData->data[1];
         mouseData->moveY = mouseData->data[2];

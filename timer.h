@@ -33,4 +33,5 @@ void stopTimerOfSystem(unsigned int timerId);
 unsigned int setSystemTimer(unsigned long countdown, void (*onTimerStopCallback)());
 unsigned int setTimer(struct TimerManager *systemTimerManager, unsigned long countdown, void (*onTimerStopCallback)());
 struct TimerManager *allocaTimerManager(void (*onTick)());
+long getSystemTime();
 #endif

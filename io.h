@@ -11,6 +11,8 @@ struct MouseData
     unsigned char data[3];
     unsigned char phase;
     int moveX, moveY, btn;
+    int preX, preY, preBtn;
+    long lastClickTimestamp;
     int x, y;
     short rootIndexOfPointer;
 };

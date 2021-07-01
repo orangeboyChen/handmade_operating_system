@@ -1,0 +1,69 @@
+Date : 2021-07-01 21:06:36
+Directory : c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test
+Total : 39 files,  3313 codes, 460 comments, 669 blanks, all 4442 lines
+
+Languages
++------------------------+------------+------------+------------+------------+------------+
+| language               | files      | code       | comment    | blank      | total      |
++------------------------+------------+------------+------------+------------+------------+
+| C                      |         14 |      2,260 |        393 |        456 |      3,109 |
+| C++                    |         18 |        515 |         30 |         81 |        626 |
+| nasm                   |          3 |        365 |         27 |         71 |        463 |
+| Makefile               |          1 |        128 |         10 |         48 |        186 |
+| Infrastructure-As-Code |          3 |         45 |          0 |         13 |         58 |
++------------------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                           | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                              |         39 |      3,313 |        460 |        669 |      4,442 |
+| .VSCodeCounter                                                                                 |          2 |         44 |          0 |         13 |         57 |
+| .VSCodeCounter\2021-06-02_22-03-45                                                             |          2 |         44 |          0 |         13 |         57 |
++------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------+------------------------+------------+------------+------------+------------+
+| filename                                                                                       | language               | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------+------------------------+------------+------------+------------+------------+
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\.VSCodeCounter\2021-06-02_22-03-45\details.md | Infrastructure-As-Code |         26 |          0 |          6 |         32 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\.VSCodeCounter\2021-06-02_22-03-45\results.md | Infrastructure-As-Code |         18 |          0 |          7 |         25 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\Makefile                                      | Makefile               |        128 |         10 |         48 |        186 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\action.c                                      | C                      |        217 |          1 |         43 |        261 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\action.h                                      | C++                    |         42 |          0 |          6 |         48 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\asmhead.nas                                   | nasm                   |         97 |         19 |         31 |        147 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\bootpack.c                                    | C                      |        154 |         75 |         45 |        274 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\bootpack.h                                    | C++                    |         23 |          1 |          5 |         29 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\color.h                                       | C++                    |         21 |          0 |          3 |         24 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\common.h                                      | C++                    |          6 |          0 |          2 |          8 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\dsctbl.c                                      | C                      |         48 |          0 |          9 |         57 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\dsctbl.h                                      | C++                    |         30 |          0 |          3 |         33 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\fifo.c                                        | C                      |         66 |          2 |         13 |         81 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\fifo.h                                        | C++                    |         34 |          3 |          8 |         45 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\graphic.c                                     | C                      |        129 |         33 |         13 |        175 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\graphic.h                                     | C++                    |         11 |          0 |          0 |         11 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\interupt.c                                    | C                      |         50 |          0 |          7 |         57 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\interupt.h                                    | C++                    |         25 |          0 |          3 |         28 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\io.c                                          | C                      |         76 |          1 |         15 |         92 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\io.h                                          | C++                    |         29 |          0 |          3 |         32 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\ipl10.nas                                     | nasm                   |         86 |          6 |         14 |        106 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\make.bat                                      | Infrastructure-As-Code |          1 |          0 |          0 |          1 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\memory.c                                      | C                      |        288 |        145 |         89 |        522 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\memory.h                                      | C++                    |         35 |          0 |          6 |         41 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\nas.h                                         | C++                    |         22 |          0 |          3 |         25 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\naskfunc.nas                                  | nasm                   |        182 |          2 |         26 |        210 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\sheet.c                                       | C                      |        554 |         47 |         98 |        699 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\sheet.h                                       | C++                    |         65 |          8 |         14 |         87 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\task.c                                        | C                      |        190 |         33 |         33 |        256 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\task.h                                        | C++                    |         47 |          0 |          8 |         55 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\test.cpp                                      | C++                    |         33 |         18 |          6 |         57 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\timer.c                                       | C                      |        117 |          5 |         24 |        146 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\timer.h                                       | C++                    |         34 |          0 |          3 |         37 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\utils.c                                       | C                      |        186 |         15 |         14 |        215 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\utils.h                                       | C++                    |         13 |          0 |          1 |         14 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\widget.c                                      | C                      |         25 |          0 |          6 |         31 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\widget.h                                      | C++                    |          9 |          0 |          2 |         11 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\window.c                                      | C                      |        160 |         36 |         47 |        243 |
+| c:\Users\chene\OneDrive\桌面\30天自制操作系统\tolset\test\window.h                                      | C++                    |         36 |          0 |          5 |         41 |
+| Total                                                                                          |                        |      3,313 |        460 |        669 |      4,442 |
++------------------------------------------------------------------------------------------------+------------------------+------------+------------+------------+------------+

@@ -1,10 +1,13 @@
 #include "window.h"
 
 struct Sheet *mouseSheet;
+struct WindowsManager windowsManager;
+
 void initMouseCursorSheet(struct Sheet *rootSheet)
 {
     // mouseSheet = createSubsheetToTop(rootSheet, 0, 0, rootSheet->width, rootSheet->height);
     mouseSheet = createSubsheetToTop(rootSheet, 0, 0, MOUSE_WIDTH, MOUSE_HEIGHT);
+    rootSheetManager.mouseSheet = mouseSheet;
     setFixedTop(mouseSheet);
 
     fillInSheet(mouseSheet, 0, 0, MOUSE_WIDTH, MOUSE_HEIGHT, COL_TRANSPARENT);
@@ -51,6 +54,8 @@ void updateMouseCursorSheet(short moveX, short moveY)
     }
     // initMouseCursor(mouseSheet, mouseSheet->attribute[0], mouseSheet->attribute[1]);
     moveSheet(mouseSheet, mouseSheet->attribute[0], mouseSheet->attribute[1]);
+    mouseData.preX = mouseData.x;
+    mouseData.preY = mouseData.y;
     mouseData.x = mouseSheet->attribute[0];
     mouseData.y = mouseSheet->attribute[1];
 
@@ -69,38 +74,59 @@ void updateMouseCursorSheet(short moveX, short moveY)
 
 void initDesktop(struct Sheet *rootSheet)
 {
-    struct Sheet *desktopSheet = createSubsheetToTop(rootSheet, 0, 0, rootSheet->width, rootSheet->height);
+    // struct Sheet *desktopSheet = createSubsheetToTop(rootSheet, 0, 0, rootSheet->width, rootSheet->height);
+    struct Sheet *desktopSheet = createSubsheetToTop(rootSheet, 0, 0, rootSheet->width, 18);
+    rootSheetManager.desktopSheet = desktopSheet;
     // struct Sheet *desktopSheet = createSubsheetToTop(rootSheet, 0, 0, rootSheet->width, 18);
 
     setFixedTop(desktopSheet);
 
-    fillInSheet(desktopSheet, 0, 0, desktopSheet->width, 17, COL8_FFFFFF);
+    struct Sheet *desktopStatusSheet = createSubsheetToTop(desktopSheet, 0, 0, desktopSheet->width, 17);
+    struct Sheet *desktopStatusSheetBackground = createSubsheetToTop(desktopStatusSheet, 0, 0, desktopStatusSheet->width, desktopStatusSheet->height);
+    fillVram(desktopStatusSheetBackground, COL8_FFFFFF);
+    setFixedBottom(desktopStatusSheetBackground);
+
+    fillVram(desktopStatusSheet, COL8_FFFFFF);
+    updateSheet(desktopStatusSheet);
+
+    // fillInSheet(desktopSheet, 0, 0, desktopSheet->width, 17, COL8_FFFFFF);
+
     fillInSheet(desktopSheet, 0, 17, desktopSheet->width, 1, COL8_848484);
-    fillInSheet(desktopSheet, 0, 18, desktopSheet->width, desktopSheet->height - 18, COL_TRANSPARENT);
+    // fillInSheet(desktopSheet, 0, 18, desktopSheet->width, desktopSheet->height - 18, COL_TRANSPARENT);
 
     // char s[64];
     // sprintf(s, "%d %uMB", desktopSheet->nextSheet->index, getUnusedMemoryTotal(getMemoryManager()) / (1024 * 1024));
-    printInSheet(desktopSheet, 8, 0, "Explorer", COL8_000000);
+    struct Sheet *titleSheet = createLabel(desktopStatusSheet, 0, 0, 64, 16, "E", COL8_000000);
+    rootSheetManager.titleLabel = titleSheet;
+    // printInSheet(desktopSheet, 8, 0, "Explorer", COL8_000000);
 
     // printInSheet(desktopSheet, 8, 0, s, COL8_000000);
 
-    // updateSheet(desktopSheet);
+    updateSheet(desktopSheet);
+    // updateSheet(titleSheet);
 }
 
-struct Sheet *createWindow(struct Sheet *fatherSheet, short x, short y, short width, short height, char *title)
+struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short width, short height, char *title)
 {
+
+    struct Window *window = allocaMemory(getMemoryManager(), sizeof(struct Window));
+
     struct Sheet *windowSheet = createSubsheetToTop(fatherSheet, x, y, width, height);
+    window->sheet = windowSheet;
+    // windowSheet->fatherWindow = window;
 
-    // //背景图层
-    // struct Sheet *backgroundSheet = createSubsheetToTop(windowSheet, 1, 19, width - 2, height - 20);
+    //背景图层
     struct Sheet *backgroundSheet = createSubsheetToTop(windowSheet, 0, 0, width, height);
+    window->backgroundSheet = backgroundSheet;
+    // backgroundSheet->fatherWindow = window;
 
-    // fillInSheet(backgroundSheet, 0, 0, width - 2, height - 20, COL8_FFFFFF);
     fillInSheet(backgroundSheet, 0, 0, width, height, COL8_FFFFFF);
     setFixedBottom(backgroundSheet);
 
     //状态图层
     struct Sheet *statusSheet = createSubsheetToTop(windowSheet, 0, 0, width, height);
+    window->statusBarSheet = statusSheet;
+    // statusSheet->fatherWindow = window;
 
     fillInSheet(statusSheet, 1, 19, width - 2, height - 19, COL_TRANSPARENT);
     fillInSheet(statusSheet, 1, 1, width - 2, 17, COL8_FFFFFF);
@@ -115,27 +141,31 @@ struct Sheet *createWindow(struct Sheet *fatherSheet, short x, short y, short wi
     //三个按钮
     struct Sheet *buttonSheet = createSubsheetToTop(statusSheet, 10, 6, 50, 8);
     struct Sheet *backgroundOfButtonSheet = createSubsheetToTop(buttonSheet, 0, 0, 50, 8);
+    window->buttonSheet = buttonSheet;
+    window->backgroundOfButtonSheet = backgroundOfButtonSheet;
+    // buttonSheet->fatherWindow = window;
+    // backgroundOfButtonSheet->fatherWindow = window;
     fillVram(backgroundOfButtonSheet, COL8_FFFFFF);
     setFixedBottom(backgroundOfButtonSheet);
 
     struct Sheet *closeBtn = createSubsheetToTop(buttonSheet, 0, 0, 8, 8);
+    window->closeButtonSheet = closeBtn;
+    // closeBtn->fatherWindow = window;
     initButtonCircle(closeBtn, 0, 0, COL8_FF0000);
     updateSheet(closeBtn);
 
-    struct Sheet *minButton = createSubsheetToTop(buttonSheet, 12, 0, 8, 8);
-    initButtonCircle(minButton, 0, 0, COL8_00FF00);
-    updateSheet(minButton);
+    // struct Sheet *minButton = createSubsheetToTop(buttonSheet, 12, 0, 8, 8);
+    // initButtonCircle(minButton, 0, 0, COL8_00FF00);
+    // updateSheet(minButton);
 
-    struct Sheet *maxButton = createSubsheetToTop(buttonSheet, 24, 0, 8, 8);
-    initButtonCircle(maxButton, 0, 0, COL8_0000FF);
-    updateSheet(maxButton);
-
+    // struct Sheet *maxButton = createSubsheetToTop(buttonSheet, 24, 0, 8, 8);
+    // initButtonCircle(maxButton, 0, 0, COL8_0000FF);
+    // updateSheet(maxButton);
     updateSheet(backgroundOfButtonSheet);
     updateSheet(buttonSheet);
 
     setFixedTop(statusSheet);
-
-    updateIndexMap(windowSheet);
+    updateIndexMapAndActionMap(windowSheet);
     fillVramByIndexMap(windowSheet);
     updateSheet(windowSheet);
 
@@ -147,10 +177,75 @@ struct Sheet *createWindow(struct Sheet *fatherSheet, short x, short y, short wi
         title = "...";
     }
     struct Sheet *titleSheet = createLabelWithBackground(statusSheet, labelX, 2, getStringSize(title) * 8, 16, title, COL8_000000, COL8_FFFFFF);
+    window->titleSheet = titleSheet;
+    window->title = title;
+
+    // titleSheet->fatherWindow = window;
     updateSheet(windowSheet);
-    // printInSheet(statusSheet, width / 2 - getStringSize(title) * 8 / 2, 2, title, COL8_000000);
 
-    // moveSheet(windowSheet, windowSheet->x, windowSheet->y);
+    //添加事件
+    window->sheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+    window->statusBarSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+    window->closeButtonSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
 
-    return windowSheet;
+    // window->sheet->actionManager->onClick = &activeWindow;
+    window->statusBarSheet->actionManager->onClick = &onWindowStatusBarClick;
+
+    return window;
+}
+
+void onWindowStatusBarClick(struct Sheet *this, unsigned int x, unsigned int y)
+{
+    if (windowsManager.isDragging)
+    {
+        int moveX = mouseData.x - mouseData.preX;
+        int moveY = mouseData.y - mouseData.preY;
+
+        moveSheet(this->fatherSheet, this->fatherSheet->x + moveX, this->fatherSheet->y + moveY);
+
+        // setLabelText(desktopTitleSheet, this->fatherWindow, COL8_000000);
+    }
+    else
+    {
+        windowsManager.isDragging = true;
+    }
+}
+
+void activeWindow(struct Window *window)
+{
+    windowsManager.currentActiveWindow = window;
+    fillWindowBackground(window, COL8_FFFFFF);
+}
+
+void disactiveWindow(struct Window *window)
+{
+    fillWindowBackground(window, COL8_848484);
+}
+
+void fillWindowBackground(struct Window *window, unsigned int color)
+{
+    fillVram(window->backgroundOfButtonSheet, color);
+
+    struct Window *statusSheet = window->statusBarSheet;
+    unsigned int width = window->sheet->width;
+    unsigned int height = window->sheet->height;
+    fillInSheet(statusSheet, 1, 19, width - 2, height - 19, COL_TRANSPARENT);
+    fillInSheet(statusSheet, 1, 1, width - 2, 17, color);
+    fillInSheet(statusSheet, 0, 0, width, 1, COL8_848400);
+    fillInSheet(statusSheet, 0, 0, 1, height, COL8_848484);
+    fillInSheet(statusSheet, width - 1, 0, 1, height, COL8_848484);
+    fillInSheet(statusSheet, 0, height - 1, width, 1, COL8_848484);
+    fillInSheet(statusSheet, 0, 18, width, 1, COL8_848484);
+    initFourRadius(statusSheet);
+
+    fillVram(window->backgroundSheet, color);
+
+    window->titleSheet->attribute[0] = color;
+    setLabelText(window->titleSheet, window->title, COL8_000000);
+
+    updateIndexMapAndActionMap(statusSheet);
+    fillVramByIndexMap(statusSheet);
+    // updateSheet(window->titleSheet);
+    updateSheet(window->backgroundOfButtonSheet);
+    // updateSheet(statusSheet);
 }

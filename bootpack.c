@@ -1,36 +1,51 @@
 #include "bootpack.h"
 #include "timer.h"
 #include "task.h"
+#include "window.h"
+#include "action.h"
 
 struct Sheet *statusLabel;
 int i = 0;
-void showSomething()
+struct Window *faWin;
+
+void onCloseClick()
 {
-	i++;
-
-	// setTimer(10, &showSomething);
-
-	// char c[32];
-	// sprintf(c, "%ds", i);
-	// setLabelText(statusLabel, c, COL8_848400);
-
-	return;
+	setLabelText(statusLabel, "closeClick", COL8_000000);
 }
 
-void switchA();
-void switchT();
-
-void switchT()
+void onMouseDown()
 {
-	setSystemTimer(1, &switchA);
-	farjmp(0, 4 * 8);
+	initButtonCircle(faWin->closeButtonSheet, 0, 0, COL8_848484);
+	updateSheet(faWin->closeButtonSheet);
 }
 
-void switchA()
+void onMouseUp()
 {
-	setSystemTimer(1, &switchT);
-	farjmp(0, 3 * 8);
+	initButtonCircle(faWin->closeButtonSheet, 0, 0, COL8_FF0000);
+	updateSheet(faWin->closeButtonSheet);
+	// activeWindow(faWin);
 }
+
+// void onStatusClick()
+// {
+// 	setLabelText(rootSheetManager.titleLabel, faWin->title, COL8_000000);
+
+// 	if (windowsManager.currentActiveWindow == faWin)
+// 	{
+// 		if (windowsManager.isDragging)
+// 		{
+// 			int moveX = mouseData.x - mouseData.preX;
+// 			int moveY = mouseData.y - mouseData.preY;
+
+// 			moveSheet(faWin->sheet, faWin->sheet->x + moveX, faWin->sheet->y + moveY);
+// 		}
+// 		else
+// 		{
+// 			windowsManager.isDragging = true;
+// 		}
+// 	}
+// 	windowsManager.currentActiveWindow = faWin;
+// }
 
 void HariMain(void)
 {
@@ -47,16 +62,32 @@ void HariMain(void)
 	initMemoryManage(memoryManager);
 
 	struct Sheet *rootSheet = initRootSheet();
-	rootSheet->index = 999;
 	initMouseCursorSheet(rootSheet);
 	initDesktop(rootSheet);
-	createWindow(rootSheet, 60, 60, 80, 80, "Father1");
-	// struct Sheet *win = createWindow(rootSheet, 30, 30, 200, 100, "Father2");
-	// createWindow(win, 5, 5 + 18, 180, 40, "Son1");
+	struct Window *fatherWindow = createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	faWin = fatherWindow;
+	// fatherWindow->statusBarSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+	// fatherWindow->statusBarSheet->actionManager->onClick = &onStatusClick;
+
+	fatherWindow->closeButtonSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+	fatherWindow->closeButtonSheet->actionManager->onClick = &onCloseClick;
+
+	// fatherWindow->closeButtonSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+	// fatherWindow->closeButtonSheet->actionManager->onMouseLeftDown = &onMouseDown;
+	// fatherWindow->closeButtonSheet->actionManager->onMouseLeftUp = &onMouseUp;
+
+	// fatherWindow->backgroundSheet->actionManager = fatherWindow->statusBarSheet->actionManager;
+	// fatherWindow->backgroundOfButtonSheet->actionManager = fatherWindow->statusBarSheet->actionManager;
+	// fatherWindow->titleSheet->actionManager = fatherWindow->statusBarSheet->actionManager;
+
+	struct Window *win = createWindow(fatherWindow->sheet, 30, 30, 100, 60, "Fa");
 
 	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
-
 	setFixedBottom(statusLabel);
+
+	// updateIndexMapAndActionMap(rootSheet);
+	// fillVramByIndexMap(rootSheet);
+	// updateSheet(rootSheet);
 
 	initSystemTimerManager();
 
@@ -67,61 +98,25 @@ void HariMain(void)
 	initKeyboard();
 	enableMouse();
 
-	struct Task *task_a = initTask(memoryManager);
-	systemFifo.task = task_a;
-	runTask(task_a, 1, 100);
+	// struct Task *task_a = initTask(memoryManager);
+	// systemFifo.task = task_a;
+	// runTask(task_a, 1, 100);
 
-	struct Task *task_b[3];
-	for (i = 0; i < 3; i++)
-	{
-		task_b[i] = allocaTask();
-		task_b[i]->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
-		task_b[i]->tss.eip = (int)&task_b_main;
-		task_b[i]->tss.es = 1 * 8;
-		task_b[i]->tss.cs = 2 * 8;
-		task_b[i]->tss.ss = 1 * 8;
-		task_b[i]->tss.ds = 1 * 8;
-		task_b[i]->tss.fs = 1 * 8;
-		task_b[i]->tss.gs = 1 * 8;
-		runTask(task_b[i], 1, 10);
-	}
+	// struct Task *task_b[1];
+	// for (i = 0; i < 1; i++)
+	// {
+	// 	task_b[i] = allocaTask();
+	// 	task_b[i]->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
+	// 	task_b[i]->tss.eip = (int)&task_b_main;
+	// 	task_b[i]->tss.es = 1 * 8;
+	// 	task_b[i]->tss.cs = 2 * 8;
+	// 	task_b[i]->tss.ss = 1 * 8;
+	// 	task_b[i]->tss.ds = 1 * 8;
+	// 	task_b[i]->tss.fs = 1 * 8;
+	// 	task_b[i]->tss.gs = 1 * 8;
+	// 	runTask(task_b[i], 1, 10);
+	// }
 
-	// int task_b_esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024;
-	// struct Tss tss_a, tss_b;
-	// tss_a.ldtr = 0;
-	// tss_a.iomap = 0x40000000;
-	// tss_b.ldtr = 0;
-	// tss_b.iomap = 0x40000000;
-
-	// struct SEGMENT_DESCRIPTOR *gdt = (struct SEGMENT_DESCRIPTOR *)ADR_GDT;
-	// set_segmdesc(gdt + 3, 103, (int)&tss_a, AR_TSS32);
-	// set_segmdesc(gdt + 4, 103, (int)&tss_b, AR_TSS32);
-	// load_tr(3 * 8);
-
-	// tss_b.eip = (int)&task_b_main;
-	// tss_b.eflags = 0x00000202; /* IF = 1; */
-	// tss_b.eax = 0;
-	// tss_b.ecx = 0;
-	// tss_b.edx = 0;
-	// tss_b.ebx = 0;
-	// tss_b.esp = task_b_esp;
-	// tss_b.ebp = 0;
-	// tss_b.esi = 0;
-	// tss_b.edi = 0;
-	// tss_b.es = 1 * 8;
-	// tss_b.cs = 2 * 8;
-	// tss_b.ss = 1 * 8;
-	// tss_b.ds = 1 * 8;
-	// tss_b.fs = 1 * 8;
-	// tss_b.gs = 1 * 8;
-
-	// setSystemTimer(100, &switchT);
-	// setSystemTimer(300, &switchT);
-	// setSystemTimer(500, &switchT);
-	// setSystemTimer(700, &switchT);
-	// setSystemTimer(900, &switchT);
-
-	// int timerDev = 0;
 	while (1)
 	{
 		// io_cli();
@@ -158,17 +153,18 @@ void HariMain(void)
 				if (putInMouseData(&mouseData, item->data) == 1)
 				{
 					updateMouseCursorSheet(mouseData.moveX, mouseData.moveY);
+					handleOnMouseMoveOfRoot(mouseData.x, mouseData.y);
 					// int x = mouseData.x, y = mouseData.y;
-					// struct Sheet *cs = rootSheet->sheetStore[rootSheet->indexMap[y * rootSheet->width + (x - 1)]];
+					// struct Sheet *cs = rootSheet->sheetStore[rootSheet->actionMap[y * rootSheet->width + (x - 1)]];
 					// x -= cs->x;
 					// y -= cs->y;
 
 					// char s4[32];
 					// sprintf(s4, "%d-%d %d-%d %d %d %d %d (%d)",
 					// 		rootSheet->vram[mouseData.y * rootSheet->width + (mouseData.x - 1)],
-					// 		rootSheet->indexMap[mouseData.y * rootSheet->width + (mouseData.x - 1)],
+					// 		rootSheet->actionMap[mouseData.y * rootSheet->width + (mouseData.x - 1)],
 					// 		cs->vram[y * cs->width + (x - 1)],
-					// 		cs->indexMap[y * cs->width + (x - 1)],
+					// 		cs->actionMap[y * cs->width + (x - 1)],
 					// 		cs->index,
 					// 		cs->fatherSheet->index,
 					// 		x,
@@ -176,24 +172,73 @@ void HariMain(void)
 					// 		get()->firstTimer->timerId);
 					// setLabelText(statusLabel, s4, COL8_FFFFFF);
 
-					// if ((mouseData.btn & 0x01) == 0x01)
-					if (mouseData.btn == 0x01)
+					// if ((mouseData.btn &W 0x01) == 0x01)
+					// char s4[32];
+					// sprintf(s4, "%d",
+					// 		mouseData.btn);
+
+					// setLabelText(statusLabel, s4, COL8_FFFFFF);
+
+					//mouse left down
+					if ((mouseData.preBtn & 0x01) != 0x01 && (mouseData.btn & 0x01) == 0x01)
 					{
-						// moveSheet(rootSheet->topSheet->nextSheet->nextSheet, mouseData.x, mouseData.y);
-						// setTimer(100, &showSomething);
-					}
-					// if ((mouseData.btn & 0x02) == 0x02)
-					if (mouseData.btn == 0x02)
-					{
-						struct Sheet *cur = rootSheet->topSheet->nextSheet->nextSheet->topSheet->nextSheet;
-						// moveSheet(cur, mouseData.x - cur->fatherSheet->x, mouseData.y - cur->fatherSheet->y);
+						handleOnMouseLeftDownOfRoot(mouseData.x, mouseData.y);
 					}
 
-					// if ((mouseData.btn & 0x04) == 0x04)
-					if (mouseData.btn == 0x04)
+					//mouse left up
+					if ((mouseData.preBtn & 0x01) == 0x01 && (mouseData.btn & 0x01) != 0x01)
 					{
-						struct Sheet *cur = rootSheet->topSheet->nextSheet->nextSheet->nextSheet;
-						// moveSheet(cur, mouseData.x - cur->fatherSheet->x, mouseData.y - cur->fatherSheet->y);
+						handleOnMouseLeftUpOfRoot(mouseData.x, mouseData.y);
+					}
+
+					//mouse right down
+					if ((mouseData.preBtn & 0x02) != 0x02 && (mouseData.btn & 0x02) == 0x02)
+					{
+						handleOnMouseRightDownOfRoot(mouseData.x, mouseData.y);
+					}
+
+					//mouse right up
+					if ((mouseData.preBtn & 0x02) == 0x01 && (mouseData.btn & 0x02) != 0x02)
+					{
+						handleOnMouseRightUpOfRoot(mouseData.x, mouseData.y);
+					}
+
+					//mouse middle down
+					if ((mouseData.preBtn & 0x04) != 0x04 && (mouseData.btn & 0x01) == 0x04)
+					{
+						handleOnMouseMiddleDownOfRoot(mouseData.x, mouseData.y);
+					}
+
+					//mouse middle up
+					if ((mouseData.preBtn & 0x04) == 0x04 && (mouseData.btn & 0x01) != 0x04)
+					{
+						handleOnMouseMiddleUpOfRoot(mouseData.x, mouseData.y);
+					}
+
+					//mouse left click
+					if ((mouseData.btn & 0x01) == 0x01)
+					{
+						handleOnClickOfRoot(mouseData.x, mouseData.y);
+
+						long currentTime = getSystemTime();
+						if (mouseData.lastClickTimestamp - currentTime < 50)
+						{
+							//double click
+							handleOnDoubleClickOfRoot(mouseData.x, mouseData.y);
+						}
+						mouseData.lastClickTimestamp = currentTime;
+					}
+
+					//mouse right click
+					if ((mouseData.btn & 0x02) == 0x02)
+					{
+						handleOnRightClickOfRoot(mouseData.x, mouseData.y);
+					}
+
+					//mouse middle click
+					if ((mouseData.btn & 0x04) == 0x04)
+					{
+						handleOnMiddleClickOfRoot(mouseData.x, mouseData.y);
 					}
 				}
 			}
@@ -210,7 +255,7 @@ void task_b_main()
 {
 	while (true)
 	{
-		setLabelText(statusLabel, "taskb==", COL8_000000);
+		// setLabelText(statusLabel, "taskb==", COL8_000000);
 		// io_hlt();
 
 		struct FifoItem *item = getInFifo(&systemFifo);
