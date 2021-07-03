@@ -33,6 +33,7 @@ struct Task *initTask(struct MemoryManager *memoryManager)
     switchTaskLevel();
     load_tr(task->sel);
     taskManager->currentTask = task;
+    // switchTask();
     unsigned int id = setSystemTimer(task->priority, &switchTask);
     // char s4[32];
     // sprintf(s4, "-%d-",

@@ -62,4 +62,9 @@ void initWindowsManager();
 struct ActiveSheetItem *getActiveSheetItem();
 struct ActiveSheetItem *removeActiveSheetItem(struct ActiveSheetItem *item);
 void deleteWindowsManagerActiveSheetItems();
+void onWindowKeyPress(struct Sheet *this, char c, unsigned int raw);
+void onWindowKeyUp(struct Sheet *this, char c, unsigned int raw);
+
+void releaseWindow(struct Window *window);
+void releaseSingleSheet(struct Sheet *temp);
 #endif

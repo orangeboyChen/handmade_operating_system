@@ -7,6 +7,9 @@
 #include "action.h"
 #include "graphic.h"
 
+#define BUTTON 1
+#define TEXTFIELD 2
+
 struct Button
 {
     struct Sheet *titleSheet;

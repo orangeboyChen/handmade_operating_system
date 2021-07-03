@@ -1,6 +1,8 @@
 #include "timer.h"
 #include "bootpack.h"
+#include "fifo.h"
 struct TimerManager *systemTimerManager;
+
 unsigned int setTimer(struct TimerManager *timerManager, unsigned long countdown, void (*onTimerStopCallback)())
 {
 
@@ -53,9 +55,11 @@ struct TimerManager *createTimerManager(struct Fifo *fifo)
     return timerManager;
 }
 
-void initSystemTimerManager()
+struct TimerManager *initSystemTimerManager()
 {
-    systemTimerManager = createTimerManager(&systemFifo);
+    struct Fifo *systemTimerManagerFifo = allocaMemory(getMemoryManager(), sizeof(struct Fifo));
+    systemTimerManager = createTimerManager(systemTimerManagerFifo);
+    return systemTimerManager;
 }
 
 unsigned int setSystemTimer(unsigned long countdown, void (*onTimerStopCallback)())

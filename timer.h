@@ -27,7 +27,7 @@ struct TimerManager
 };
 extern struct TimerManager *systemTimerManager;
 struct TimerManager *get();
-void initSystemTimerManager();
+struct TimerManager *initSystemTimerManager();
 void onSystemTimerTick();
 void stopTimerOfSystem(unsigned int timerId);
 unsigned int setSystemTimer(unsigned long countdown, void (*onTimerStopCallback)());

@@ -1,12 +1,11 @@
 #include "app_calc.h"
-#include "fifo.h"
-#include "window.h"
-#include "widget.h"
 
+#define EQUAL 0
 #define PLUS 1
 #define MINU 2
 #define MULT 3
 #define DIV 4
+#define CLEAR 5
 
 static int total = 0;
 static int lastNum = 0;
@@ -15,11 +14,15 @@ static unsigned int isResult = false;
 
 static char currentNumStr[128];
 static struct TextField *displaySheet;
+static struct Button *numberButton[10];
+static struct Button *operateButton[6];
 
 void calcMain()
 {
 
     struct Window *fatherWindow2 = createWindow(rootSheetManager.sheet, 60, 60, 172, 134, "Calculator");
+    fatherWindow2->sheet->userActionManager->onKeyPress = &onCalcWindowKeyPress;
+    fatherWindow2->sheet->userActionManager->onKeyUp = &onCalcWindowKeyUp;
 
     displaySheet = createTextField(fatherWindow2->sheet, 3, 22, 166, 20, "0");
     displaySheet->disabled = true;
@@ -57,6 +60,10 @@ void calcMain()
     struct Button *button0 = createButton(fatherWindow2->sheet, 45, 110, 40, 20, "0");
     button0->sheet->userActionManager->onClick = &onButton0Click;
 
+    char s[32];
+    sprintf(s, "%dMb", getUnusedMemoryTotal(getMemoryManager()) / (1024 * 1024));
+    setLabelText(statusLabel, s, COL8_000000);
+
     struct Button *buttonPlus = createButton(fatherWindow2->sheet, 129, 44, 40, 20, "+");
     buttonPlus->sheet->userActionManager->onClick = &onButtonPlusClick;
 
@@ -72,15 +79,115 @@ void calcMain()
     struct Button *buttonResult = createButton(fatherWindow2->sheet, 87, 110, 40, 20, "=");
     buttonResult->sheet->userActionManager->onClick = &onButtonResultClick;
 
+    numberButton[0] = button0;
+    numberButton[1] = button1;
+    numberButton[2] = button2;
+    numberButton[3] = button3;
+    numberButton[4] = button4;
+    numberButton[5] = button5;
+    numberButton[6] = button6;
+    numberButton[7] = button7;
+    numberButton[8] = button8;
+    numberButton[9] = button9;
+
+    operateButton[EQUAL] = buttonResult;
+    operateButton[PLUS] = buttonPlus;
+    operateButton[MINU] = buttonMinu;
+    operateButton[MULT] = buttonMult;
+    operateButton[DIV] = buttonDiv;
+    operateButton[CLEAR] = buttonC;
+
     while (true)
     {
-        struct FifoItem *item = getInFifo(&systemFifo);
+        //Timer
+        struct FifoItem *item2 = getInFifo(systemTimerManager->fifo);
 
-        if (item->type == FIFO_TYPE_TIMER)
+        if (item2->type == FIFO_TYPE_TIMER)
         {
-            void (*callback)() = item->pointer;
+            void (*callback)() = item2->pointer;
             callback();
         }
+    }
+}
+
+void onCalcWindowKeyUp(struct Sheet *sheet, char c, unsigned int raw)
+{
+    if ('0' <= c && c <= '9')
+    {
+        // handleCalcInput(c - '0');
+        struct Sheet *buttonSheet = numberButton[c - '0']->sheet;
+
+        buttonSheet->systemActionManager->onMouseLeftUp(buttonSheet, 0, 0);
+    }
+    else if (raw == 0x2e)
+    {
+        struct Sheet *buttonSheet = operateButton[CLEAR]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftUp(buttonSheet, 0, 0);
+    }
+    else if (c == '+')
+    {
+        struct Sheet *buttonSheet = operateButton[PLUS]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftUp(buttonSheet, 0, 0);
+    }
+    else if (c == '-')
+    {
+        struct Sheet *buttonSheet = operateButton[MINU]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftUp(buttonSheet, 0, 0);
+    }
+    else if (c == '*')
+    {
+        struct Sheet *buttonSheet = operateButton[MULT]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftUp(buttonSheet, 0, 0);
+    }
+    else if (c == '/')
+    {
+        struct Sheet *buttonSheet = operateButton[DIV]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftUp(buttonSheet, 0, 0);
+    }
+    else if (raw == 0x1c)
+    {
+        struct Sheet *buttonSheet = operateButton[EQUAL]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftUp(buttonSheet, 0, 0);
+    }
+}
+
+void onCalcWindowKeyPress(struct Sheet *sheet, char c, unsigned int raw)
+{
+    if ('0' <= c && c <= '9')
+    {
+        // handleCalcInput(c - '0');
+        struct Sheet *buttonSheet = numberButton[c - '0']->sheet;
+        buttonSheet->systemActionManager->onMouseLeftDown(buttonSheet, 0, 0);
+    }
+    else if (raw == 0x2e)
+    {
+        struct Sheet *buttonSheet = operateButton[CLEAR]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftDown(buttonSheet, 0, 0);
+    }
+    else if (c == '+')
+    {
+        struct Sheet *buttonSheet = operateButton[PLUS]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftDown(buttonSheet, 0, 0);
+    }
+    else if (c == '-')
+    {
+        struct Sheet *buttonSheet = operateButton[MINU]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftDown(buttonSheet, 0, 0);
+    }
+    else if (c == '*')
+    {
+        struct Sheet *buttonSheet = operateButton[MULT]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftDown(buttonSheet, 0, 0);
+    }
+    else if (c == '/')
+    {
+        struct Sheet *buttonSheet = operateButton[DIV]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftDown(buttonSheet, 0, 0);
+    }
+    else if (raw == 0x1c)
+    {
+        struct Sheet *buttonSheet = operateButton[EQUAL]->sheet;
+        buttonSheet->systemActionManager->onMouseLeftDown(buttonSheet, 0, 0);
     }
 }
 

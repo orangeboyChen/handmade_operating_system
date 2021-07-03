@@ -28,18 +28,15 @@ void HariMain(void)
 	initMouseCursorSheet(rootSheet);
 	initDesktop(rootSheet);
 	struct Window *fatherWindow = createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// struct Button *btn = createButton(fatherWindow->sheet, 6, 20, 80, 20, "button");
+	// struct TextField *tfd = createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
 
 	// struct Window *win = createWindow(rootSheet, 30, 30, 100, 60, "Father");
 	// struct Window *win2 = createWindow(rootSheet, 60, 60, 200, 60, "Fatheraaa");
 
-	struct Button *btn = createButton(fatherWindow->sheet, 6, 20, 80, 20, "button");
-
-	struct TextField *tfd = createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
-
+	// releaseWindow(fatherWindow);
 	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
 	setFixedBottom(statusLabel);
-
-	initSystemTimerManager();
 
 	init_pit();
 	initKeyboard();
@@ -47,24 +44,37 @@ void HariMain(void)
 	io_out8(PIC0_IMR, 0xf8);
 	io_out8(PIC1_IMR, 0xef);
 
+	initSystemTimerManager();
 	struct Task *task_a = initTask(memoryManager);
 	systemFifo.task = task_a;
 	runTask(task_a, 1, 100);
 
-	struct Task *task_b[1];
-	for (i = 0; i < 1; i++)
-	{
-		task_b[i] = allocaTask();
-		task_b[i]->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
-		task_b[i]->tss.eip = (int)&calcMain;
-		task_b[i]->tss.es = 1 * 8;
-		task_b[i]->tss.cs = 2 * 8;
-		task_b[i]->tss.ss = 1 * 8;
-		task_b[i]->tss.ds = 1 * 8;
-		task_b[i]->tss.fs = 1 * 8;
-		task_b[i]->tss.gs = 1 * 8;
-		runTask(task_b[i], 1, 10);
-	}
+	// struct Task *task_b[5];
+	// for (i = 0; i < 5; i++)
+	// {
+	// 	task_b[i] = allocaTask();
+	// 	task_b[i]->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
+	// 	task_b[i]->tss.eip = (int)&calcMain;
+	// 	task_b[i]->tss.es = 1 * 8;
+	// 	task_b[i]->tss.cs = 2 * 8;
+	// 	task_b[i]->tss.ss = 1 * 8;
+	// 	task_b[i]->tss.ds = 1 * 8;
+	// 	task_b[i]->tss.fs = 1 * 8;
+	// 	task_b[i]->tss.gs = 1 * 8;
+	// 	runTask(task_b[i], 1, 10);
+	// }
+
+	struct Task *task_b;
+	task_b = allocaTask();
+	task_b->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
+	task_b->tss.eip = (int)&calcMain;
+	task_b->tss.es = 1 * 8;
+	task_b->tss.cs = 2 * 8;
+	task_b->tss.ss = 1 * 8;
+	task_b->tss.ds = 1 * 8;
+	task_b->tss.fs = 1 * 8;
+	task_b->tss.gs = 1 * 8;
+	runTask(task_b, 1, 2);
 
 	while (1)
 	{
@@ -182,6 +192,20 @@ void HariMain(void)
 				void (*callback)() = item->pointer;
 				callback();
 			}
+		}
+
+		//Timer
+		struct FifoItem *item2 = getInFifo(systemTimerManager->fifo);
+
+		// // io_hlt();
+		// char c[32];
+		// sprintf(c, "%d", item2->data);
+		// setLabelText(statusLabel, c, COL8_848400);
+
+		if (item2->type == FIFO_TYPE_TIMER)
+		{
+			void (*callback)() = item2->pointer;
+			callback();
 		}
 	}
 }

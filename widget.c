@@ -47,16 +47,17 @@ struct Button *createButton(struct Sheet *sheet, short x, short y, short width, 
 
     //文字
     int labelX = width / 2 - getStringSize(title) * 8 / 2;
+    int labelY = height / 2 - 16 / 2;
     struct Sheet *textSheet;
     if (labelX <= 5)
     {
         labelX = 5;
         // title = "...";
-        textSheet = createLabelWithBackground(buttonSheet, labelX, 2, getStringSize("...") * 8, 16, "...", COL8_000000, COL_TRANSPARENT);
+        textSheet = createLabelWithBackground(buttonSheet, labelX, labelY, getStringSize("...") * 8, 16, "...", COL8_000000, COL_TRANSPARENT);
     }
     else
     {
-        textSheet = createLabelWithBackground(buttonSheet, labelX, 2, getStringSize(title) * 8, 16, title, COL8_000000, COL_TRANSPARENT);
+        textSheet = createLabelWithBackground(buttonSheet, labelX, labelY, getStringSize(title) * 8, 16, title, COL8_000000, COL_TRANSPARENT);
     }
 
     buttonSheet->systemActionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
@@ -67,11 +68,15 @@ struct Button *createButton(struct Sheet *sheet, short x, short y, short width, 
     buttonSheet->attribute[0] = backgroundSheet;
     buttonSheet->attribute[1] = textSheet;
 
+    buttonSheet->attribute[5] = BUTTON;
+
     struct Button *button = allocaMemory(getMemoryManager(), sizeof(struct Button));
     button->sheet = buttonSheet;
     button->title = title;
     button->titleSheet = textSheet;
     button->backgroundSheet = backgroundSheet;
+
+    buttonSheet->attribute[2] = button;
 
     updateIndexMapAndActionMap(sheet);
     fillVramByIndexMap(sheet);
@@ -180,6 +185,8 @@ struct TextField *createTextField(struct Sheet *sheet, short x, short y, short w
     textField->backgroundSheet = backgroundSheet;
 
     textFieldSheet->attribute[2] = textField;
+
+    textFieldSheet->attribute[5] = TEXTFIELD;
 
     updateIndexMapAndActionMap(sheet);
     fillVramByIndexMap(sheet);

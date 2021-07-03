@@ -239,7 +239,12 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
     window->statusBarSheet->systemActionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
     window->closeButtonSheet->systemActionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
 
+    window->sheet->userActionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+
     window->sheet->systemActionManager->onClick = &activeSheetWindow;
+    window->sheet->systemActionManager->onKeyPress = &onWindowKeyPress;
+    window->sheet->systemActionManager->onKeyUp = &onWindowKeyUp;
+
     window->statusBarSheet->systemActionManager->onClick = &onWindowStatusBarClick;
     window->statusBarSheet->systemActionManager->onMouseLeftDown = &onWindowStatusBarMouseLeftDown;
 
@@ -363,4 +368,91 @@ void onWindowCloseButtonMouseUp(struct Sheet *this, unsigned int x, unsigned int
     }
 
     //关闭窗体
+    releaseWindow(this->fatherWindow);
+}
+
+void onWindowKeyPress(struct Sheet *this, char c, unsigned int raw)
+{
+    if (this->userActionManager != NULL && this->userActionManager->onKeyPress != NULL)
+    {
+        this->userActionManager->onKeyPress(this, c, raw);
+    }
+}
+
+void onWindowKeyUp(struct Sheet *this, char c, unsigned int raw)
+{
+    if (this->userActionManager != NULL && this->userActionManager->onKeyUp != NULL)
+    {
+        this->userActionManager->onKeyUp(this, c, raw);
+    }
+}
+
+void releaseWindow(struct Window *window)
+{
+    struct Sheet *sheet = window->sheet;
+
+    struct Sheet *currentSheet = sheet;
+    while (currentSheet->topSheet != NULL)
+    {
+        currentSheet = currentSheet->topSheet;
+    }
+
+    while (currentSheet != sheet && currentSheet != NULL)
+    {
+        while (currentSheet->topSheet != NULL)
+        {
+            struct Sheet *temp = currentSheet->topSheet;
+            currentSheet->topSheet = currentSheet->topSheet->nextSheet;
+            releaseSingleSheet(temp);
+        }
+
+        struct Sheet *temp = currentSheet;
+        currentSheet = currentSheet->fatherSheet;
+        releaseSingleSheet(temp);
+    }
+
+    sheet->previousSheet->nextSheet = sheet->nextSheet;
+    sheet->nextSheet->previousSheet = sheet->previousSheet;
+    updateIndexMapAndActionMap(sheet->fatherSheet);
+    fillVramByIndexMap(sheet->fatherSheet);
+    updateSheet(sheet->fatherSheet);
+
+    releaseSingleSheet(sheet);
+    releaseBlock(getMemoryManager, window->title);
+    releaseBlock(getMemoryManager(), window);
+}
+
+void releaseSingleSheet(struct Sheet *temp)
+{
+    releaseBlock(getMemoryManager(), temp->vram);
+    releaseBlock(getMemoryManager(), temp->actionMap);
+    releaseBlock(getMemoryManager(), temp->indexMap);
+    releaseBlock(getMemoryManager(), temp->updateMap);
+
+    if (temp->systemActionManager != NULL)
+    {
+        releaseBlock(getMemoryManager(), temp->systemActionManager);
+    }
+
+    if (temp->userActionManager != NULL)
+    {
+        releaseBlock(getMemoryManager(), temp->userActionManager);
+    }
+
+    if (temp->attribute[5] == BUTTON)
+    {
+        struct Button *button = temp->attribute[2];
+        releaseBlock(getMemoryManager(), button->title);
+        releaseBlock(getMemoryManager(), button);
+    }
+
+    if (temp->attribute[5] == TEXTFIELD)
+    {
+        struct TextField *textField = temp->attribute[2];
+        releaseBlock(getMemoryManager(), textField->content);
+        releaseBlock(getMemoryManager(), textField->displayContent);
+        releaseBlock(getMemoryManager(), textField);
+    }
+
+    releaseBlock(getMemoryManager(), temp);
 }

@@ -133,7 +133,7 @@ void analyseKeyborardData(unsigned int key)
             }
 
             // char s4[32];
-            // sprintf(s4, "%d %c", key, keyName);
+            // sprintf(s4, "%X %c", key, keyName);
             // setLabelText(statusLabel, s4, COL8_FFFFFF);
             handleKeyPress(keyName, key);
         }
