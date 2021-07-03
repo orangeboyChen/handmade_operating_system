@@ -36,9 +36,15 @@ void inthandler21(int *esp)
     io_out8(PIC0_OCW2, 0x61);
     data = io_in8(PORT_KEYDAT);
     putInFifo(&systemFifo, FIFO_TYPE_KEYBOARD, NULL, data);
+
+    // char s4[32];
+    // sprintf(s4, "%X", data);
+    // setLabelText(statusLabel, s4, COL8_000000);
     return;
 }
-void inthandler27(int *esp) {}
+void inthandler27(int *esp)
+{
+}
 void inthandler2c(int *esp)
 {
     unsigned char data;

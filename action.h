@@ -19,7 +19,11 @@ struct ActionManager
     void (*onDoubleClick)(struct Sheet *this, unsigned int x, unsigned int y);
     void (*onRightClick)(struct Sheet *this, unsigned int x, unsigned int y);
     void (*onMiddleClick)(struct Sheet *this, unsigned int x, unsigned int y);
+
+    void (*onKeyPress)(struct Sheet *this, char c, unsigned int raw);
+    void (*onKeyUp)(struct Sheet *this, char c, unsigned int raw);
 };
+
 void handleOnClickOfRoot(unsigned int x, unsigned int y);
 void handleOnMouseMoveOfRoot(unsigned int x, unsigned int y);
 void handleOnMouseLeftDownOfRoot(unsigned int x, unsigned int y);
@@ -43,5 +47,8 @@ void handleOnMouseMiddleUp(struct Sheet *sheet, unsigned int x, unsigned int y);
 void handleOnDoubleClick(struct Sheet *sheet, unsigned int x, unsigned int y);
 void handleOnRightClick(struct Sheet *sheet, unsigned int x, unsigned int y);
 void handleOnMiddleClick(struct Sheet *sheet, unsigned int x, unsigned int y);
+
+void handleKeyPress(char key, unsigned int raw);
+void handleKeyUp(char key, unsigned int raw);
 
 #endif

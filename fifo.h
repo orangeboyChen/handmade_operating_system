@@ -11,9 +11,9 @@
 #define FIFO_MAX 512
 
 //type
-#define FIFO_TYPE_KEYBOARD 0
 #define FIFO_TYPE_MOUSE 1
 #define FIFO_TYPE_TIMER 2
+#define FIFO_TYPE_KEYBOARD 3
 
 //subtype
 //--mouse

@@ -1,6 +1,50 @@
 #include "graphic.h"
 #define RADIUS_LENGTH 16
 #define CIRCLE_RADIUS 8
+
+void initButtonFourRadius(struct Sheet *backgroundSheet, unsigned int inputColor)
+{
+    static char radius[6][6] =
+        {
+            "....**",
+            "..**OO",
+            ".**OOO",
+            "**OOOO",
+            "*OOOOO",
+            "*OOOOO"};
+
+    int x, y;
+    for (y = 0; y < 6; y++)
+    {
+        for (x = 0; x < 6; x++)
+        {
+            unsigned int color = 0;
+            if (radius[y][x] == '*')
+            {
+                color = inputColor;
+            }
+            if (radius[y][x] == 'O')
+            {
+                continue;
+            }
+            if (radius[y][x] == '/')
+            {
+                color = COL8_848484;
+            }
+            if (radius[y][x] == '.')
+            {
+                color = COL_FORCE_TRANSPARENT;
+                backgroundSheet->vram[y * backgroundSheet->width + x] = COL_FORCE_TRANSPARENT;
+            }
+            backgroundSheet->vram[y * backgroundSheet->width + x] = color;
+            backgroundSheet->vram[y * backgroundSheet->width + (backgroundSheet->width - 1 - x)] = color;
+            backgroundSheet->vram[(backgroundSheet->height - 1 - y) * backgroundSheet->width + x] = color;
+            backgroundSheet->vram[(backgroundSheet->height - 1 - y) * backgroundSheet->width + (backgroundSheet->width - 1 - x)] = color;
+            setBitInUpdateMap(backgroundSheet, y * backgroundSheet->width + x, true);
+        }
+    }
+}
+
 void initFourRadius(struct Sheet *backgroundSheet)
 {
 

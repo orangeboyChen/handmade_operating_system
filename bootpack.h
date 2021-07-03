@@ -11,7 +11,6 @@
 #include <stdio.h>
 #include <string.h>
 void showSomething();
-//boot
 struct BootInfo
 {
     char cyls, leds, vmode, reserve;

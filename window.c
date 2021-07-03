@@ -3,6 +3,51 @@
 struct Sheet *mouseSheet;
 struct WindowsManager windowsManager;
 
+void initWindowsManager()
+{
+    int i;
+    for (i = 0; i < ACTIVE_SHEET_ITEM_TOTAL; i++)
+    {
+        windowsManager.activeSheetItemStore[i].isUsing = false;
+    }
+}
+
+void deleteWindowsManagerActiveSheetItems()
+{
+    struct ActiveSheetItem *currentItem = windowsManager.firstActiveSheet;
+    while (currentItem != NULL)
+    {
+        struct ActiveSheetItem *nextItem = currentItem->nextSheet;
+        removeActiveSheetItem(currentItem);
+        currentItem = nextItem;
+    }
+    windowsManager.firstActiveSheet = NULL;
+    windowsManager.lastActiveSheet = NULL;
+}
+
+struct ActiveSheetItem *getActiveSheetItem()
+{
+    int i;
+    for (i = 0; i < ACTIVE_SHEET_ITEM_TOTAL; i++)
+    {
+        if (windowsManager.activeSheetItemStore[i].isUsing == false)
+        {
+            windowsManager.activeSheetItemStore[i].isUsing = true;
+            return &windowsManager.activeSheetItemStore[i];
+        }
+    }
+
+    return NULL;
+}
+
+struct ActiveSheetItem *removeActiveSheetItem(struct ActiveSheetItem *item)
+{
+    item->previousSheet = NULL;
+    item->nextSheet = NULL;
+    item->sheet = NULL;
+    item->isUsing = false;
+}
+
 void initMouseCursorSheet(struct Sheet *rootSheet)
 {
     // mouseSheet = createSubsheetToTop(rootSheet, 0, 0, rootSheet->width, rootSheet->height);
@@ -150,7 +195,7 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
 
     struct Sheet *closeBtn = createSubsheetToTop(buttonSheet, 0, 0, 8, 8);
     window->closeButtonSheet = closeBtn;
-    // closeBtn->fatherWindow = window;
+    closeBtn->fatherWindow = window;
     initButtonCircle(closeBtn, 0, 0, COL8_FF0000);
     updateSheet(closeBtn);
 
@@ -172,9 +217,10 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
     //标题
     int labelX = width / 2 - getStringSize(title) * 8 / 2;
     struct Sheet *titleSheet;
-    if (labelX <= 45)
+    //45
+    if (labelX <= 15)
     {
-        labelX = 45;
+        labelX = 15;
         // title = "...";
         titleSheet = createLabelWithBackground(statusSheet, labelX, 2, getStringSize("...") * 8, 16, "...", COL8_000000, COL8_FFFFFF);
     }
@@ -189,16 +235,25 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
     updateSheet(windowSheet);
 
     //添加事件
-    window->sheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
-    window->statusBarSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
-    window->closeButtonSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+    window->sheet->systemActionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+    window->statusBarSheet->systemActionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+    window->closeButtonSheet->systemActionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
 
-    window->sheet->actionManager->onClick = &activeSheetWindow;
-    window->statusBarSheet->actionManager->onClick = &onWindowStatusBarClick;
+    window->sheet->systemActionManager->onClick = &activeSheetWindow;
+    window->statusBarSheet->systemActionManager->onClick = &onWindowStatusBarClick;
+    window->statusBarSheet->systemActionManager->onMouseLeftDown = &onWindowStatusBarMouseLeftDown;
+
+    window->closeButtonSheet->systemActionManager->onMouseLeftDown = &onWindowCloseButtonMouseDown;
+    window->closeButtonSheet->systemActionManager->onMouseLeftUp = &onWindowCloseButtonMouseUp;
 
     activeSheetWindow(window->sheet);
 
     return window;
+}
+
+void onWindowStatusBarMouseLeftDown(struct Sheet *this, unsigned int x, unsigned int y)
+{
+    windowsManager.isDragging = true;
 }
 
 void onWindowStatusBarClick(struct Sheet *this, unsigned int x, unsigned int y)
@@ -210,10 +265,10 @@ void onWindowStatusBarClick(struct Sheet *this, unsigned int x, unsigned int y)
 
         moveSheet(this->fatherSheet, this->fatherSheet->x + moveX, this->fatherSheet->y + moveY);
     }
-    else
-    {
-        windowsManager.isDragging = true;
-    }
+    // else
+    // {
+    //     windowsManager.isDragging = true;
+    // }
 }
 
 void activeSheetWindow(struct Sheet *sheet)
@@ -231,11 +286,12 @@ void disactiveSheetWindow(struct Sheet *sheet)
 void activeWindow(struct Window *window)
 {
     struct Window *previousActiveWindow = windowsManager.currentActiveWindow;
-    if (previousActiveWindow == window)
+    if (previousActiveWindow == window && windowsManager.isActiveShowing == true)
     {
         return;
     }
 
+    windowsManager.isActiveShowing = true;
     if (previousActiveWindow != NULL)
     {
         disactiveWindow(previousActiveWindow);
@@ -270,7 +326,7 @@ void fillWindowBackground(struct Window *window, unsigned int color)
 
     window->titleSheet->attribute[0] = color;
     int labelX = width / 2 - getStringSize(window->title) * 8 / 2;
-    if (labelX <= 45)
+    if (labelX <= 15)
     {
         setLabelText(window->titleSheet, "...", COL8_000000);
     }
@@ -283,6 +339,28 @@ void fillWindowBackground(struct Window *window, unsigned int color)
     updateIndexMapAndActionMap(statusSheet);
     fillVramByIndexMap(statusSheet);
     // updateSheet(window->titleSheet);
+    // updateIndexMapAndActionMap(window->backgroundOfButtonSheet);
+    // fillVramByIndexMap(window->backgroundOfButtonSheet);
     updateSheet(window->backgroundOfButtonSheet);
     // updateSheet(statusSheet);
+}
+
+void onWindowCloseButtonMouseDown(struct Sheet *this)
+{
+    initButtonCircle(this->fatherWindow->closeButtonSheet, 0, 0, COL8_848484);
+    updateSheet(this->fatherWindow->closeButtonSheet);
+}
+
+void onWindowCloseButtonMouseUp(struct Sheet *this, unsigned int x, unsigned int y)
+{
+    initButtonCircle(this->fatherWindow->closeButtonSheet, 0, 0, COL8_FF0000);
+    updateSheet(this->fatherWindow->closeButtonSheet);
+
+    if (this->fatherWindow->closeButtonSheet->userActionManager != NULL &&
+        this->fatherWindow->closeButtonSheet->userActionManager->onClick != NULL)
+    {
+        this->fatherWindow->closeButtonSheet->userActionManager->onClick(this, x, y);
+    }
+
+    //关闭窗体
 }

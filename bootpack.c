@@ -4,48 +4,11 @@
 #include "window.h"
 #include "action.h"
 
+#include "app_calc.h"
+
 struct Sheet *statusLabel;
 int i = 0;
 struct Window *faWin;
-
-// void onCloseClick()
-// {
-// 	setLabelText(statusLabel, "closeClick", COL8_000000);
-// }
-
-void onMouseDown()
-{
-	initButtonCircle(faWin->closeButtonSheet, 0, 0, COL8_848484);
-	updateSheet(faWin->closeButtonSheet);
-}
-
-void onMouseUp()
-{
-	initButtonCircle(faWin->closeButtonSheet, 0, 0, COL8_FF0000);
-	updateSheet(faWin->closeButtonSheet);
-	// activeWindow(faWin);
-}
-
-// void onStatusClick()
-// {
-// 	setLabelText(rootSheetManager.titleLabel, faWin->title, COL8_000000);
-
-// 	if (windowsManager.currentActiveWindow == faWin)
-// 	{
-// 		if (windowsManager.isDragging)
-// 		{
-// 			int moveX = mouseData.x - mouseData.preX;
-// 			int moveY = mouseData.y - mouseData.preY;
-
-// 			moveSheet(faWin->sheet, faWin->sheet->x + moveX, faWin->sheet->y + moveY);
-// 		}
-// 		else
-// 		{
-// 			windowsManager.isDragging = true;
-// 		}
-// 	}
-// 	windowsManager.currentActiveWindow = faWin;
-// }
 
 void HariMain(void)
 {
@@ -65,76 +28,49 @@ void HariMain(void)
 	initMouseCursorSheet(rootSheet);
 	initDesktop(rootSheet);
 	struct Window *fatherWindow = createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	faWin = fatherWindow;
-	// fatherWindow->statusBarSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
-	// fatherWindow->statusBarSheet->actionManager->onClick = &onStatusClick;
 
-	fatherWindow->closeButtonSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
-	fatherWindow->closeButtonSheet->actionManager->onMouseLeftDown = &onMouseDown;
-	fatherWindow->closeButtonSheet->actionManager->onMouseLeftUp = &onMouseUp;
+	// struct Window *win = createWindow(rootSheet, 30, 30, 100, 60, "Father");
+	// struct Window *win2 = createWindow(rootSheet, 60, 60, 200, 60, "Fatheraaa");
 
-	// fatherWindow->backgroundSheet->actionManager = fatherWindow->statusBarSheet->actionManager;
-	// fatherWindow->backgroundOfButtonSheet->actionManager = fatherWindow->statusBarSheet->actionManager;
-	// fatherWindow->titleSheet->actionManager = fatherWindow->statusBarSheet->actionManager;
+	struct Button *btn = createButton(fatherWindow->sheet, 6, 20, 80, 20, "button");
 
-	struct Window *win = createWindow(rootSheet, 30, 30, 100, 60, "Father");
-	struct Window *win2 = createWindow(rootSheet, 60, 60, 200, 60, "Fatheraaa");
+	struct TextField *tfd = createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
 
 	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
 	setFixedBottom(statusLabel);
 
-	// updateIndexMapAndActionMap(rootSheet);
-	// fillVramByIndexMap(rootSheet);
-	// updateSheet(rootSheet);
-
 	initSystemTimerManager();
 
 	init_pit();
+	initKeyboard();
+	enableMouse();
 	io_out8(PIC0_IMR, 0xf8);
 	io_out8(PIC1_IMR, 0xef);
 
-	initKeyboard();
-	enableMouse();
+	struct Task *task_a = initTask(memoryManager);
+	systemFifo.task = task_a;
+	runTask(task_a, 1, 100);
 
-	// struct Task *task_a = initTask(memoryManager);
-	// systemFifo.task = task_a;
-	// runTask(task_a, 1, 100);
-
-	// struct Task *task_b[1];
-	// for (i = 0; i < 1; i++)
-	// {
-	// 	task_b[i] = allocaTask();
-	// 	task_b[i]->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
-	// 	task_b[i]->tss.eip = (int)&task_b_main;
-	// 	task_b[i]->tss.es = 1 * 8;
-	// 	task_b[i]->tss.cs = 2 * 8;
-	// 	task_b[i]->tss.ss = 1 * 8;
-	// 	task_b[i]->tss.ds = 1 * 8;
-	// 	task_b[i]->tss.fs = 1 * 8;
-	// 	task_b[i]->tss.gs = 1 * 8;
-	// 	runTask(task_b[i], 1, 10);
-	// }
+	struct Task *task_b[1];
+	for (i = 0; i < 1; i++)
+	{
+		task_b[i] = allocaTask();
+		task_b[i]->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
+		task_b[i]->tss.eip = (int)&calcMain;
+		task_b[i]->tss.es = 1 * 8;
+		task_b[i]->tss.cs = 2 * 8;
+		task_b[i]->tss.ss = 1 * 8;
+		task_b[i]->tss.ds = 1 * 8;
+		task_b[i]->tss.fs = 1 * 8;
+		task_b[i]->tss.gs = 1 * 8;
+		runTask(task_b[i], 1, 10);
+	}
 
 	while (1)
 	{
-		// io_cli();
-		// setLabelText(statusLabel, "main", COL8_000000);
 		struct FifoItem *item = getInFifo(&systemFifo);
-
-		// char c[32];
-		// sprintf(c, "%ds", systemTimerManager->currentTime);
-		// setLabelText(statusLabel, c, COL8_848400);
 		if (item == NULL)
 		{
-			// timerDev++;
-			// if (timerDev % 100 == 0)
-			// {
-			// 	char s4[32];
-			// 	sprintf(s4, "(%d)",
-			// 			timerDev);
-			// 	setLabelText(statusLabel, s4, COL8_FFFFFF);
-			// }
-
 			io_stihlt();
 		}
 		else if (item->type != NULL)
@@ -145,6 +81,7 @@ void HariMain(void)
 				// char s4[32];
 				// sprintf(s4, "%02X", item->data);
 				// setLabelText(statusLabel, s4, COL8_FFFFFF);
+				analyseKeyborardData(item->data);
 			}
 			else if (item->type == FIFO_TYPE_MOUSE)
 			{

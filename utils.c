@@ -213,3 +213,27 @@ struct MemoryManager *getMemoryManager()
 {
     return (struct MemoryManager *)MEMMAN_ADDR;
 }
+
+int String2Int(char *str)
+{
+    char flag = '+';
+    long res = 0;
+
+    if (*str == '-')
+    {
+        ++str;
+        flag = '-';
+    }
+
+    while (*str >= 48 && *str < 57)
+    {
+        res = 10 * res + *str++ - 48;
+    }
+
+    if (flag == '-')
+    {
+        res = -res;
+    }
+
+    return (int)res;
+}

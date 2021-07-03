@@ -1,6 +1,7 @@
 #include "io.h"
 
 struct MouseData mouseData;
+struct KeyboardData keyboardData;
 
 void waitKbcSendKey()
 {
@@ -89,4 +90,76 @@ int putInMouseData(struct MouseData *mouseData, unsigned char data)
     }
 
     return -1;
+}
+
+void analyseKeyborardData(unsigned int key)
+{
+
+    if (key == 0xba)
+    {
+        keyboardData.capslock = keyboardData.capslock ? false : true;
+        // char s4[32];
+        // sprintf(s4, "->%X %d", key, keyboardData.pressData[LEFT_SHIFT_KEY]);
+        // setLabelText(statusLabel, s4, COL8_FFFFFF);
+        return;
+    }
+
+    if (key == CAPS_LOCK_KEY)
+    {
+        return;
+    }
+
+    if (key < 0x80)
+    {
+        if (keyboardData.pressData[key] == false)
+        {
+            char keyName;
+            if (
+                (keyboardData.pressData[LEFT_SHIFT_KEY] == true && keyboardData.pressData[RIGHT_SHIFT_KEY] == false && keyboardData.capslock == false) ||
+                (keyboardData.pressData[LEFT_SHIFT_KEY] == false && keyboardData.pressData[RIGHT_SHIFT_KEY] == true && keyboardData.capslock == false) ||
+                (keyboardData.pressData[LEFT_SHIFT_KEY] == false && keyboardData.pressData[RIGHT_SHIFT_KEY] == false && keyboardData.capslock == true)
+
+            )
+            {
+                keyName = keyTable0[key];
+            }
+            else
+            {
+                keyName = keyTable0[key];
+                if ('A' <= keyName && keyName <= 'Z')
+                {
+                    keyName += 0x32;
+                }
+            }
+
+            // char s4[32];
+            // sprintf(s4, "%d %c", key, keyName);
+            // setLabelText(statusLabel, s4, COL8_FFFFFF);
+            handleKeyPress(keyName, key);
+        }
+        keyboardData.pressData[key] = true;
+    }
+    else
+    {
+        key -= 0x80;
+        if (keyboardData.pressData[key] == true)
+        {
+            char keyName;
+            if (
+                ((keyboardData.pressData[LEFT_SHIFT_KEY] == true || keyboardData.pressData[RIGHT_SHIFT_KEY] == false) && keyboardData.capslock == false) ||
+                ((keyboardData.pressData[LEFT_SHIFT_KEY] == false || keyboardData.pressData[RIGHT_SHIFT_KEY] == true) && keyboardData.capslock == false) ||
+                ((keyboardData.pressData[LEFT_SHIFT_KEY] == false || keyboardData.pressData[RIGHT_SHIFT_KEY] == false) && keyboardData.capslock == true)
+
+            )
+            {
+                keyName = keyTable0[key];
+            }
+            else
+            {
+                keyName = keyTable0[key] + 0x20;
+            }
+            handleKeyUp(keyName, key);
+        }
+        keyboardData.pressData[key] = false;
+    }
 }

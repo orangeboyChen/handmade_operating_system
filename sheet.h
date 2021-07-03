@@ -46,7 +46,8 @@ struct Sheet
     int attribute[128];
 
     //动作事件
-    struct ActionManager *actionManager;
+    struct ActionManager *systemActionManager;
+    struct ActionManager *userActionManager;
 
     //控制的window
     struct Window *fatherWindow;

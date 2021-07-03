@@ -28,8 +28,8 @@ struct Sheet *initRootSheet()
     forceUpdateSheet(backgroundSheet);
 
     //添加事件
-    backgroundSheet->actionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
-    backgroundSheet->actionManager->onClick = &onBackgroundClick;
+    backgroundSheet->systemActionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+    backgroundSheet->systemActionManager->onClick = &onBackgroundClick;
 
     return rootSheet;
 }
@@ -37,7 +37,7 @@ struct Sheet *initRootSheet()
 void onBackgroundClick()
 {
     disactiveSheetWindow(windowsManager.currentActiveWindow->sheet);
-    windowsManager.currentActiveWindow = NULL;
+    windowsManager.isActiveShowing = false;
     setLabelText(rootSheetManager.titleLabel, "Desktop", COL8_000000);
 }
 

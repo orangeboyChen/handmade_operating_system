@@ -11,4 +11,5 @@ void init_mouse_cursor8(char *mouse, char bc);
 void putblock8_8(char *vram, int vxsize, int pxsize,
                  int pysize, int px0, int py0, char *buf, int bxsize);
 unsigned int getStringSize(char *c);
+int String2Int(char *str);
 #endif

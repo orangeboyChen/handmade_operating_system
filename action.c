@@ -2,6 +2,11 @@
 
 void handleOnClickOfRoot(unsigned int x, unsigned int y)
 {
+    deleteWindowsManagerActiveSheetItems();
+    struct ActiveSheetItem *item = getActiveSheetItem();
+    item->sheet = rootSheetManager.sheet;
+    windowsManager.firstActiveSheet = item;
+    windowsManager.lastActiveSheet = item;
     handleOnClick(rootSheetManager.sheet, x - 1, y);
 }
 
@@ -45,6 +50,7 @@ void handleOnRightClickOfRoot(unsigned int x, unsigned int y)
 }
 void handleOnMiddleClickOfRoot(unsigned int x, unsigned int y)
 {
+
     handleOnMiddleClick(rootSheetManager.sheet, x - 1, y);
 }
 
@@ -63,9 +69,15 @@ void handleOnClick(struct Sheet *sheet, unsigned int x, unsigned int y)
 
     struct Sheet *targetSheet = sheet->sheetStore[sheet->actionMap[y * sheet->width + x]];
 
-    if (targetSheet != NULL && targetSheet->actionManager != NULL && targetSheet->actionManager->onClick != NULL)
+    struct ActiveSheetItem *item = getActiveSheetItem();
+    item->sheet = targetSheet;
+    item->previousSheet = windowsManager.lastActiveSheet;
+    windowsManager.lastActiveSheet->nextSheet = item;
+    windowsManager.lastActiveSheet = item;
+
+    if (targetSheet != NULL && targetSheet->systemActionManager != NULL && targetSheet->systemActionManager->onClick != NULL)
     {
-        targetSheet->actionManager->onClick(targetSheet, x, y);
+        targetSheet->systemActionManager->onClick(targetSheet, x, y);
     }
 
     unsigned int subSheetX = x - targetSheet->x;
@@ -81,9 +93,9 @@ void handleOnMouseMove(struct Sheet *sheet, unsigned int x, unsigned int y)
     }
 
     struct Sheet *targetSheet = sheet->sheetStore[sheet->actionMap[y * sheet->width + x]];
-    if (targetSheet != NULL && targetSheet->actionManager != NULL && targetSheet->actionManager->onMouseIn != NULL)
+    if (targetSheet != NULL && targetSheet->systemActionManager != NULL && targetSheet->systemActionManager->onMouseIn != NULL)
     {
-        targetSheet->actionManager->onMouseIn(targetSheet, x, y);
+        targetSheet->systemActionManager->onMouseIn(targetSheet, x, y);
     }
 
     unsigned int subSheetX = x - targetSheet->x;
@@ -98,11 +110,23 @@ void handleOnMouseLeftDown(struct Sheet *sheet, unsigned int x, unsigned int y)
         return;
     }
 
+    // if (sheet != rootSheetManager.sheet)
+    // {
+    //     char c[32];
+    //     sprintf(c, "%d", sheet->index);
+    //     setLabelText(statusLabel, c, COL8_848400);
+
+    //     // if (sheet->index == 6)
+    //     // {
+    //     //     fillInSheet(sheet, 0, 0, sheet->width, sheet->height, COL8_000000);
+    //     // }
+    // }
+
     struct Sheet *targetSheet = sheet->sheetStore[sheet->actionMap[y * sheet->width + x]];
 
-    if (targetSheet != NULL && targetSheet->actionManager != NULL && targetSheet->actionManager->onMouseLeftDown != NULL)
+    if (targetSheet != NULL && targetSheet->systemActionManager != NULL && targetSheet->systemActionManager->onMouseLeftDown != NULL)
     {
-        targetSheet->actionManager->onMouseLeftDown(targetSheet, x, y);
+        targetSheet->systemActionManager->onMouseLeftDown(targetSheet, x, y);
         windowsManager.lastMouseLeftDownSheet = targetSheet;
     }
 
@@ -113,10 +137,10 @@ void handleOnMouseLeftDown(struct Sheet *sheet, unsigned int x, unsigned int y)
 
 void handleOnMouseLeftUp(struct Sheet *sheet, unsigned int x, unsigned int y)
 {
-    if (windowsManager.lastMouseLeftDownSheet != NULL && windowsManager.lastMouseLeftDownSheet->actionManager != NULL &&
-        windowsManager.lastMouseLeftDownSheet->actionManager->onMouseLeftUp != NULL)
+    if (windowsManager.lastMouseLeftDownSheet != NULL && windowsManager.lastMouseLeftDownSheet->systemActionManager != NULL &&
+        windowsManager.lastMouseLeftDownSheet->systemActionManager->onMouseLeftUp != NULL)
     {
-        windowsManager.lastMouseLeftDownSheet->actionManager->onMouseLeftUp(sheet, x, y);
+        windowsManager.lastMouseLeftDownSheet->systemActionManager->onMouseLeftUp(sheet, x, y);
         windowsManager.lastMouseLeftDownSheet = NULL;
     }
 
@@ -128,9 +152,9 @@ void handleOnMouseLeftUp(struct Sheet *sheet, unsigned int x, unsigned int y)
     }
 
     struct Sheet *targetSheet = sheet->sheetStore[sheet->actionMap[y * sheet->width + x]];
-    if (targetSheet != NULL && targetSheet->actionManager != NULL && targetSheet->actionManager->onMouseLeftUp != NULL)
+    if (targetSheet != NULL && targetSheet->systemActionManager != NULL && targetSheet->systemActionManager->onMouseLeftUp != NULL)
     {
-        targetSheet->actionManager->onMouseLeftUp(targetSheet, x, y);
+        targetSheet->systemActionManager->onMouseLeftUp(targetSheet, x, y);
     }
 
     unsigned int subSheetX = x - targetSheet->x;
@@ -146,9 +170,9 @@ void handleOnMouseRightDown(struct Sheet *sheet, unsigned int x, unsigned int y)
     }
 
     struct Sheet *targetSheet = sheet->sheetStore[sheet->actionMap[y * sheet->width + x]];
-    if (targetSheet != NULL && targetSheet->actionManager != NULL && targetSheet->actionManager->onMouseRightDown != NULL)
+    if (targetSheet != NULL && targetSheet->systemActionManager != NULL && targetSheet->systemActionManager->onMouseRightDown != NULL)
     {
-        targetSheet->actionManager->onMouseRightDown(targetSheet, x, y);
+        targetSheet->systemActionManager->onMouseRightDown(targetSheet, x, y);
     }
 
     unsigned int subSheetX = x - targetSheet->x;
@@ -164,9 +188,9 @@ void handleOnMouseRightUp(struct Sheet *sheet, unsigned int x, unsigned int y)
     }
 
     struct Sheet *targetSheet = sheet->sheetStore[sheet->actionMap[y * sheet->width + x]];
-    if (targetSheet != NULL && targetSheet->actionManager != NULL && targetSheet->actionManager->onMouseRightUp != NULL)
+    if (targetSheet != NULL && targetSheet->systemActionManager != NULL && targetSheet->systemActionManager->onMouseRightUp != NULL)
     {
-        targetSheet->actionManager->onMouseRightUp(targetSheet, x, y);
+        targetSheet->systemActionManager->onMouseRightUp(targetSheet, x, y);
     }
 
     unsigned int subSheetX = x - targetSheet->x;
@@ -182,9 +206,9 @@ void handleOnMouseMiddleDown(struct Sheet *sheet, unsigned int x, unsigned int y
     }
 
     struct Sheet *targetSheet = sheet->sheetStore[sheet->actionMap[y * sheet->width + x]];
-    if (targetSheet != NULL && targetSheet->actionManager != NULL && targetSheet->actionManager->onMouseMiddleDown != NULL)
+    if (targetSheet != NULL && targetSheet->systemActionManager != NULL && targetSheet->systemActionManager->onMouseMiddleDown != NULL)
     {
-        targetSheet->actionManager->onMouseMiddleDown(targetSheet, x, y);
+        targetSheet->systemActionManager->onMouseMiddleDown(targetSheet, x, y);
     }
 
     unsigned int subSheetX = x - targetSheet->x;
@@ -200,9 +224,9 @@ void handleOnMouseMiddleUp(struct Sheet *sheet, unsigned int x, unsigned int y)
     }
 
     struct Sheet *targetSheet = sheet->sheetStore[sheet->actionMap[y * sheet->width + x]];
-    if (targetSheet != NULL && targetSheet->actionManager != NULL && targetSheet->actionManager->onMouseMiddleUp != NULL)
+    if (targetSheet != NULL && targetSheet->systemActionManager != NULL && targetSheet->systemActionManager->onMouseMiddleUp != NULL)
     {
-        targetSheet->actionManager->onMouseMiddleUp(targetSheet, x, y);
+        targetSheet->systemActionManager->onMouseMiddleUp(targetSheet, x, y);
     }
 
     unsigned int subSheetX = x - targetSheet->x;
@@ -218,9 +242,9 @@ void handleOnDoubleClick(struct Sheet *sheet, unsigned int x, unsigned int y)
     }
 
     struct Sheet *targetSheet = sheet->sheetStore[sheet->actionMap[y * sheet->width + x]];
-    if (targetSheet != NULL && targetSheet->actionManager != NULL && targetSheet->actionManager->onDoubleClick != NULL)
+    if (targetSheet != NULL && targetSheet->systemActionManager != NULL && targetSheet->systemActionManager->onDoubleClick != NULL)
     {
-        targetSheet->actionManager->onDoubleClick(targetSheet, x, y);
+        targetSheet->systemActionManager->onDoubleClick(targetSheet, x, y);
     }
 
     unsigned int subSheetX = x - targetSheet->x;
@@ -236,9 +260,9 @@ void handleOnRightClick(struct Sheet *sheet, unsigned int x, unsigned int y)
     }
 
     struct Sheet *targetSheet = sheet->sheetStore[sheet->actionMap[y * sheet->width + x]];
-    if (targetSheet != NULL && targetSheet->actionManager != NULL && targetSheet->actionManager->onRightClick != NULL)
+    if (targetSheet != NULL && targetSheet->systemActionManager != NULL && targetSheet->systemActionManager->onRightClick != NULL)
     {
-        targetSheet->actionManager->onRightClick(targetSheet, x, y);
+        targetSheet->systemActionManager->onRightClick(targetSheet, x, y);
     }
 
     unsigned int subSheetX = x - targetSheet->x;
@@ -254,12 +278,44 @@ void handleOnMiddleClick(struct Sheet *sheet, unsigned int x, unsigned int y)
     }
 
     struct Sheet *targetSheet = sheet->sheetStore[sheet->actionMap[y * sheet->width + x]];
-    if (targetSheet != NULL && targetSheet->actionManager != NULL && targetSheet->actionManager->onMiddleClick != NULL)
+    if (targetSheet != NULL && targetSheet->systemActionManager != NULL && targetSheet->systemActionManager->onMiddleClick != NULL)
     {
-        targetSheet->actionManager->onMiddleClick(targetSheet, x, y);
+        targetSheet->systemActionManager->onMiddleClick(targetSheet, x, y);
     }
 
     unsigned int subSheetX = x - targetSheet->x;
     unsigned int subSheetY = y - targetSheet->y;
     handleOnMiddleClick(targetSheet, subSheetX, subSheetY);
+}
+
+// int i3 = 0;
+void handleKeyPress(char key, unsigned int raw)
+{
+
+    struct ActiveSheetItem *currentItem = windowsManager.firstActiveSheet;
+
+    while (currentItem != NULL)
+    {
+        if (currentItem->sheet->systemActionManager != NULL && currentItem->sheet->systemActionManager->onKeyPress != NULL)
+        {
+            // i3++;
+            // char s4[32];
+            // sprintf(s4, "%d", i3);
+            // setLabelText(statusLabel, s4, COL8_FFFFFF);
+            currentItem->sheet->systemActionManager->onKeyPress(currentItem->sheet, key, raw);
+        }
+        currentItem = currentItem->nextSheet;
+    }
+}
+void handleKeyUp(char key, unsigned int raw)
+{
+    struct ActiveSheetItem *currentItem = windowsManager.firstActiveSheet;
+    while (currentItem != NULL)
+    {
+        if (currentItem->sheet->systemActionManager != NULL && currentItem->sheet->systemActionManager->onKeyUp != NULL)
+        {
+            currentItem->sheet->systemActionManager->onKeyUp(currentItem->sheet, key, raw);
+        }
+        currentItem = currentItem->nextSheet;
+    }
 }
