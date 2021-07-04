@@ -67,4 +67,5 @@ void onWindowKeyUp(struct Sheet *this, char c, unsigned int raw);
 
 void releaseWindow(struct Window *window);
 void releaseSingleSheet(struct Sheet *temp);
+void releaseSheetRecursive(struct Sheet *sheet);
 #endif

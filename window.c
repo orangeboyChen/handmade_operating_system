@@ -184,8 +184,8 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
     initFourRadius(statusSheet);
 
     //三个按钮
-    struct Sheet *buttonSheet = createSubsheetToTop(statusSheet, 10, 6, 50, 8);
-    struct Sheet *backgroundOfButtonSheet = createSubsheetToTop(buttonSheet, 0, 0, 50, 8);
+    struct Sheet *buttonSheet = createSubsheetToTop(statusSheet, 10, 6, 30, 8);
+    struct Sheet *backgroundOfButtonSheet = createSubsheetToTop(buttonSheet, 0, 0, 30, 8);
     window->buttonSheet = buttonSheet;
     window->backgroundOfButtonSheet = backgroundOfButtonSheet;
     buttonSheet->fatherWindow = window;
@@ -219,9 +219,9 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
     int labelX = width / 2 - getStringSize(title) * 8 / 2;
     struct Sheet *titleSheet;
     //45
-    if (labelX <= 15)
+    if (labelX <= 25)
     {
-        labelX = 15;
+        labelX = 25;
         // title = "...";
         titleSheet = createLabelWithBackground(statusSheet, labelX, 2, getStringSize("...") * 8, 16, "...", COL8_000000, COL8_FFFFFF);
     }
@@ -392,35 +392,32 @@ void releaseWindow(struct Window *window)
 {
     struct Sheet *sheet = window->sheet;
 
-    struct Sheet *currentSheet = sheet;
-    while (currentSheet->topSheet != NULL)
-    {
-        currentSheet = currentSheet->topSheet;
-    }
-
-    while (currentSheet != sheet && currentSheet != NULL)
-    {
-        while (currentSheet->topSheet != NULL)
-        {
-            struct Sheet *temp = currentSheet->topSheet;
-            currentSheet->topSheet = currentSheet->topSheet->nextSheet;
-            releaseSingleSheet(temp);
-        }
-
-        struct Sheet *temp = currentSheet;
-        currentSheet = currentSheet->fatherSheet;
-        releaseSingleSheet(temp);
-    }
-
     sheet->previousSheet->nextSheet = sheet->nextSheet;
     sheet->nextSheet->previousSheet = sheet->previousSheet;
     updateIndexMapAndActionMap(sheet->fatherSheet);
     fillVramByIndexMap(sheet->fatherSheet);
     updateSheet(sheet->fatherSheet);
 
+    releaseSheetRecursive(sheet->topSheet);
     releaseSingleSheet(sheet);
+
     releaseBlock(getMemoryManager, window->title);
     releaseBlock(getMemoryManager(), window);
+}
+
+void releaseSheetRecursive(struct Sheet *sheet)
+{
+    if (sheet->topSheet != NULL)
+    {
+        releaseSheetRecursive(sheet->topSheet);
+    }
+
+    if (sheet->nextSheet != NULL)
+    {
+        releaseSheetRecursive(sheet->nextSheet);
+    }
+
+    releaseSingleSheet(sheet);
 }
 
 void releaseSingleSheet(struct Sheet *temp)

@@ -5,6 +5,7 @@
 #include "action.h"
 
 #include "app_calc.h"
+#include "app_taskManager.h"
 
 struct Sheet *statusLabel;
 int i = 0;
@@ -28,9 +29,10 @@ void HariMain(void)
 	initMouseCursorSheet(rootSheet);
 	initDesktop(rootSheet);
 	struct Window *fatherWindow = createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	struct Button *btn = createButton(fatherWindow->sheet, 6, 20, 80, 20, "button");
-	struct TextField *tfd = createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
+	// struct Button *btn = createButton(fatherWindow->sheet, 6, 20, 80, 20, "button");
+	// struct TextField *tfd = createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
 	// createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
+
 	// createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
 	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
 	setFixedBottom(statusLabel);
@@ -71,7 +73,7 @@ void HariMain(void)
 	initSystemTimerManager();
 	struct Task *task_a = initTask(memoryManager);
 	systemFifo.task = task_a;
-	runTask(task_a, 1, 2);
+	runTask(task_a, 1, 50);
 
 	// struct Task *task_b[5];
 	// for (i = 0; i < 5; i++)
@@ -88,17 +90,29 @@ void HariMain(void)
 	// 	runTask(task_b[i], 1, 10);
 	// }
 
-	struct Task *task_b;
-	task_b = allocaTask();
-	task_b->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
-	task_b->tss.eip = (int)&calcMain;
-	task_b->tss.es = 1 * 8;
-	task_b->tss.cs = 2 * 8;
-	task_b->tss.ss = 1 * 8;
-	task_b->tss.ds = 1 * 8;
-	task_b->tss.fs = 1 * 8;
-	task_b->tss.gs = 1 * 8;
-	runTask(task_b, 1, 2);
+	// struct Task *task_b;
+	// task_b = allocaTask();
+	// task_b->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
+	// task_b->tss.eip = (int)&calcMain;
+	// task_b->tss.es = 1 * 8;
+	// task_b->tss.cs = 2 * 8;
+	// task_b->tss.ss = 1 * 8;
+	// task_b->tss.ds = 1 * 8;
+	// task_b->tss.fs = 1 * 8;
+	// task_b->tss.gs = 1 * 8;
+	// runTask(task_b, 1, 2);
+
+	struct Task *task_c;
+	task_c = allocaTask();
+	task_c->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
+	task_c->tss.eip = (int)&taskManagerMain;
+	task_c->tss.es = 1 * 8;
+	task_c->tss.cs = 2 * 8;
+	task_c->tss.ss = 1 * 8;
+	task_c->tss.ds = 1 * 8;
+	task_c->tss.fs = 1 * 8;
+	task_c->tss.gs = 1 * 8;
+	runTask(task_c, 1, 2);
 
 	while (1)
 	{
