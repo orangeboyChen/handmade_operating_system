@@ -330,7 +330,7 @@ void updateIndexMapAndActionMap(struct Sheet *sheet)
         {
             for (x = currentSheet->x; x < currentSheet->x + currentSheet->width; x++)
             {
-                if (x > sheet->width || y > sheet->height || x < 0 || y < 0)
+                if (x >= sheet->width || y >= sheet->height || x < 0 || y < 0)
                 {
                     continue;
                 }

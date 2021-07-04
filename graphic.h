@@ -9,4 +9,7 @@ void initMouseCursor(struct Sheet *mouseSheet, short x, short y);
 void initFourRadius(struct Sheet *backgroundSheet);
 void initButtonCircle(struct Sheet *sheet, short x0, short y0, unsigned int color);
 void initButtonFourRadius(struct Sheet *backgroundSheet, unsigned int color);
+
+void initTriangle1(struct Sheet *sheet, unsigned int inputColor);
+void initTriangle2(struct Sheet *sheet, unsigned int inputColor);
 #endif

@@ -1,5 +1,6 @@
 #include "bootpack.h"
 #include "memory.h"
+#include "utils.h"
 unsigned int getStringSize(char *c)
 {
     int i = 0;
@@ -127,6 +128,12 @@ void putfont8(char *vram, int xsize, int x, int y, char c, char *font)
         }
     }
     return;
+}
+
+void putSingleChar(char *vram, int width, int x, int y, char singleChar, char color)
+{
+    extern char hankaku[4096];
+    putfont8(vram, width, x, y, color, hankaku + singleChar * 16);
 }
 
 void putfonts8_asc(char *vram, int xsize, int x, int y, char c, unsigned char *s)

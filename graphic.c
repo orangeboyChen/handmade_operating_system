@@ -217,3 +217,105 @@ void initMouseCursor(struct Sheet *mouseSheet, short x0, short y0)
         }
     }
 }
+
+void initTriangle1(struct Sheet *sheet, unsigned int inputColor)
+{
+    static char triangle[16][8] =
+        {
+            "........",
+            "........",
+            "........",
+            "........",
+            "...**...",
+            "...**...",
+            "..****..",
+            "..****..",
+            ".******.",
+            ".******.",
+            "********",
+            "********",
+            "........",
+            "........",
+            "........",
+            "........"};
+
+    int x, y;
+    for (y = 0; y < 16; y++)
+    {
+        for (x = 0; x < 16; x++)
+        {
+            unsigned int color = 0;
+            if (triangle[y][x] == '*')
+            {
+                color = inputColor;
+            }
+            if (triangle[y][x] == 'O')
+            {
+                continue;
+            }
+            if (triangle[y][x] == '/')
+            {
+                color = COL8_848484;
+            }
+            if (triangle[y][x] == '.')
+            {
+                color = COL_TRANSPARENT;
+                sheet->vram[y * sheet->width + x] = COL_TRANSPARENT;
+            }
+            sheet->vram[y * sheet->width + x] = color;
+
+            setBitInUpdateMap(sheet, y * sheet->width + x, true);
+        }
+    }
+}
+
+void initTriangle2(struct Sheet *sheet, unsigned int inputColor)
+{
+    static char triangle[16][8] =
+        {
+            "........",
+            "........",
+            "........",
+            "........",
+            "********",
+            "********",
+            ".******.",
+            ".******.",
+            "..****..",
+            "..****..",
+            "...**...",
+            "...**...",
+            "........",
+            "........",
+            "........",
+            "........"};
+
+    int x, y;
+    for (y = 0; y < 16; y++)
+    {
+        for (x = 0; x < 16; x++)
+        {
+            unsigned int color = 0;
+            if (triangle[y][x] == '*')
+            {
+                color = inputColor;
+            }
+            if (triangle[y][x] == 'O')
+            {
+                continue;
+            }
+            if (triangle[y][x] == '/')
+            {
+                color = COL8_848484;
+            }
+            if (triangle[y][x] == '.')
+            {
+                color = COL_TRANSPARENT;
+                sheet->vram[y * sheet->width + x] = COL_TRANSPARENT;
+            }
+            sheet->vram[y * sheet->width + x] = color;
+
+            setBitInUpdateMap(sheet, y * sheet->width + x, true);
+        }
+    }
+}

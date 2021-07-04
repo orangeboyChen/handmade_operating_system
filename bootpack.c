@@ -6,6 +6,7 @@
 
 #include "app_calc.h"
 #include "app_taskManager.h"
+#include "app_test.h"
 
 struct Sheet *statusLabel;
 int i = 0;
@@ -28,14 +29,13 @@ void HariMain(void)
 	struct Sheet *rootSheet = initRootSheet();
 	initMouseCursorSheet(rootSheet);
 	initDesktop(rootSheet);
-	struct Window *fatherWindow = createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
+	// setFixedBottom(statusLabel);
+
 	// struct Button *btn = createButton(fatherWindow->sheet, 6, 20, 80, 20, "button");
 	// struct TextField *tfd = createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
 	// createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
-
 	// createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
-	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
-	setFixedBottom(statusLabel);
 
 	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
 	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
@@ -63,6 +63,8 @@ void HariMain(void)
 	// struct Window *win2 = createWindow(rootSheet, 60, 60, 200, 60, "Fatheraaa");
 
 	// releaseWindow(fatherWindow);
+
+	// setLabelText(statusLabel, 0x7f, COL8_000000);
 
 	init_pit();
 	initKeyboard();
@@ -105,7 +107,7 @@ void HariMain(void)
 	struct Task *task_c;
 	task_c = allocaTask();
 	task_c->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
-	task_c->tss.eip = (int)&taskManagerMain;
+	task_c->tss.eip = (int)&testMain;
 	task_c->tss.es = 1 * 8;
 	task_c->tss.cs = 2 * 8;
 	task_c->tss.ss = 1 * 8;

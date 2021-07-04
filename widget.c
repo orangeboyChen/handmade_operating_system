@@ -188,7 +188,8 @@ struct TextField *createTextField(struct Sheet *sheet, short x, short y, short w
 
     textFieldSheet->attribute[5] = TEXTFIELD;
 
-    updateIndexMapAndActionMap(sheet);
+    // updateIndexMapAndActionMap(sheet);
+    updatePartOfIndexMap(sheet, x, y, x + width, y + height);
     fillVramByIndexMap(sheet);
     updateSheet(sheet);
     return textField;
@@ -251,4 +252,253 @@ void setTextFieldText(struct TextField *textField, char *c)
     }
 
     setLabelText(textField->displaySheet, textField->displayContent, COL8_000000);
+}
+
+struct LongTextField *createLongTextField(struct Sheet *sheet, short x, short y, short width, short height, short maxHeight, char *content)
+{
+    struct LongTextField *longTextField = allocaMemory(getMemoryManager(), sizeof(struct LongTextField));
+
+    struct Sheet *longTextFieldSheet = createSubsheetToTop(sheet, x, y, width, height);
+    longTextField->sheet = longTextFieldSheet;
+    longTextFieldSheet->attribute[6] = longTextField;
+
+    //背景
+    struct Sheet *backgroundSheet = createSubsheetToTop(longTextFieldSheet, 0, 0, width, height);
+    setFixedBottom(backgroundSheet);
+    fillInSheet(backgroundSheet, 0, 0, width, height, COL_TRANSPARENT);
+    fillInSheet(backgroundSheet, 0, 0, width - 25, height, COL8_FFFFFF);
+    fillInSheet(backgroundSheet, 0, 0, width - 25, 1, COL8_000000);
+    fillInSheet(backgroundSheet, 0, 0, 1, height, COL8_000000);
+    fillInSheet(backgroundSheet, 0, height - 1, width - 25, 1, COL8_000000);
+    fillInSheet(backgroundSheet, width - 26, 0, 1, height, COL8_000000);
+    updateSheet(backgroundSheet);
+    longTextField->backgroundSheet = backgroundSheet;
+
+    //按钮
+    struct Button *upButton = createButton(longTextFieldSheet, width - 22, 0, 20, 20, " ");
+    struct Button *downButton = createButton(longTextFieldSheet, width - 22, height - 20, 20, 20, " ");
+
+    initTriangle1(upButton->titleSheet, COL8_000000);
+    updateSheet(upButton->titleSheet);
+
+    initTriangle2(downButton->titleSheet, COL8_000000);
+    updateSheet(downButton->titleSheet);
+
+    upButton->sheet->attribute[6] = longTextField;
+    downButton->sheet->attribute[6] = longTextField;
+
+    longTextField->upButton = upButton->sheet;
+    longTextField->downButton = downButton->sheet;
+
+    upButton->sheet->userActionManager->onClick = &onLongTextFieldUp;
+    downButton->sheet->userActionManager->onClick = &onLongTextFieldDown;
+
+    //显示层
+    unsigned int displaySheetWidth = width - 32;
+    unsigned int displaySheetHeight = height - 1;
+    longTextField->contentVram = allocaMemory(getMemoryManager(), sizeof(char) * displaySheetWidth * maxHeight);
+    longTextField->displayVram = allocaMemory(getMemoryManager(), sizeof(char) * displaySheetWidth * height);
+
+    struct Sheet *displaySheet = createSubsheetToTopWithVram(longTextFieldSheet, 2, 0, displaySheetWidth, displaySheetHeight, longTextField->displayVram);
+    longTextField->currentWidthCursor = 0;
+    longTextField->currentHeightCursor = 0;
+    longTextField->displayHeightPointer = 0;
+    longTextField->charPerLine = displaySheet->width / 8;
+    longTextField->maxHeight = maxHeight;
+
+    longTextField->displaySheet = displaySheet;
+
+    longTextField->content = allocaMemory(getMemoryManager(), sizeof(char) * longTextField->charPerLine * (maxHeight / 16));
+    strcpy(longTextField->content, content);
+
+    fillBox(longTextField->contentVram, displaySheet->width, COL_TRANSPARENT, 0, 0, displaySheet->width, maxHeight);
+    fillInSheet(displaySheet, 0, 0, displaySheet->width, displaySheet->height, COL_TRANSPARENT);
+
+    //处理文字信息
+    unsigned int strSize = getStringSize(content);
+
+    char *temp = longTextField->content;
+    int i;
+    for (i = 0; i < getStringSize(longTextField->content); i++)
+    {
+        putSingleChar(longTextField->contentVram, displaySheet->width, longTextField->currentWidthCursor * 8, longTextField->currentHeightCursor * 16, *temp, COL8_000000);
+
+        longTextField->currentWidthCursor++;
+        if (longTextField->currentWidthCursor >= longTextField->charPerLine)
+        {
+            longTextField->currentWidthCursor = 0;
+            longTextField->currentHeightCursor++;
+        }
+
+        temp++;
+    }
+
+    //从内容填充到显示
+    if (longTextField->displayHeightPointer > maxHeight - height)
+    {
+        longTextField->displayHeightPointer = maxHeight - height;
+    }
+    else if (longTextField->displayHeightPointer < 0)
+    {
+        longTextField->displayHeightPointer = 0;
+    }
+    int j = 0;
+    for (i = longTextField->displayHeightPointer * displaySheet->width; i < (longTextField->displayHeightPointer + displaySheet->height) * displaySheet->width; i++)
+    {
+        // if (i == 100)
+        // {
+        //     break;
+        // }
+        longTextField->displayVram[j] = longTextField->contentVram[i];
+        j++;
+    }
+
+    // char a = '2';
+    // putSingleChar(longTextField->displayVram, width - 2, 0, 0, a, COL8_000000);
+
+    // printInSheet(displaySheet, 0, 32, temp, COL8_000000);
+    // putSingleChar(longTextField->displaySheet, width - 2, 0, 0, 'X', COL8_000000);
+
+    //处理键盘事件
+    longTextFieldSheet->systemActionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+    longTextFieldSheet->userActionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));
+
+    longTextFieldSheet->systemActionManager->onKeyPress = &onLongTextFieldKeyDown;
+    longTextFieldSheet->systemActionManager->onKeyUp = &onLongTextFieldKeyUp;
+    longTextFieldSheet->systemActionManager->onClick = &onLongTextFieldClick;
+
+    updateSheet(displaySheet);
+
+    // updatePartOfIndexMap(sheet, x, y, x + width, y + height);
+    updateIndexMapAndActionMap(longTextFieldSheet);
+    fillVramByIndexMap(longTextFieldSheet);
+    updateSheet(longTextFieldSheet);
+
+    return longTextField;
+}
+
+void onLongTextFieldKeyUp(struct Sheet *this, char c, unsigned int raw)
+{
+    // return;
+    struct LongTextField *longTextField = this->attribute[6];
+
+    if (raw == 0x48)
+    {
+        longTextField->upButton->systemActionManager->onMouseLeftUp(longTextField->upButton, 0, 0);
+    }
+    else if (raw == 0x50)
+    {
+        longTextField->downButton->systemActionManager->onMouseLeftUp(longTextField->downButton, 0, 0);
+    }
+}
+
+void onLongTextFieldKeyDown(struct Sheet *this, char c, unsigned int raw)
+{
+    // char s4[32];
+    // sprintf(s4, "---");
+    // setLabelText(statusLabel, s4, COL8_FFFFFF);
+
+    // return;
+    struct LongTextField *longTextField = this->attribute[6];
+    // char s4[32];
+    // sprintf(s4, "%d", longTextField->upButton->systemActionManager);
+    // setLabelText(statusLabel, s4, COL8_FFFFFF);
+    // return;
+    if (raw == 0x48)
+    {
+        longTextField->upButton->systemActionManager->onMouseLeftDown(longTextField->upButton, 0, 0);
+    }
+    else if (raw == 0x50)
+    {
+        longTextField->downButton->systemActionManager->onMouseLeftDown(longTextField->downButton, 0, 0);
+    }
+}
+
+void onLongTextFieldClick()
+{
+}
+
+void onLongTextFieldUp(struct Sheet *this)
+{
+
+    struct LongTextField *longTextField = this->attribute[6];
+    // char s[32];
+    // sprintf(s, "%d", longTextField->displayHeightPointer);
+    // setLabelText(statusLabel, s, COL8_000000);
+
+    longTextField->displayHeightPointer -= 4;
+    if (longTextField->displayHeightPointer < 0)
+    {
+        longTextField->displayHeightPointer = 0;
+    }
+    updateLongTextField(longTextField);
+}
+
+void onLongTextFieldDown(struct Sheet *this)
+{
+    struct LongTextField *longTextField = this->attribute[6];
+    longTextField->displayHeightPointer += 4;
+    updateLongTextField(longTextField);
+}
+
+void updateLongTextField(struct LongTextField *longTextField)
+{
+    struct Sheet *displaySheet = longTextField->displaySheet;
+    // fillBox(longTextField->contentVram, displaySheet->width, COL_TRANSPARENT, 0, 0, displaySheet->width, longTextField->maxHeight);
+    fillInSheet(displaySheet, 0, 0, displaySheet->width, displaySheet->height, COL_TRANSPARENT);
+
+    // 处理文字信息
+    // unsigned int strSize = getStringSize(longTextField->content);
+
+    // char *temp = longTextField->content;
+    // int i;
+    // for (i = 0; i < getStringSize(longTextField->content); i++)
+    // {
+    //     putSingleChar(longTextField->contentVram, displaySheet->width, longTextField->currentWidthCursor * 8, longTextField->currentHeightCursor * 16, *temp, COL8_000000);
+
+    //     longTextField->currentWidthCursor++;
+    //     if (longTextField->currentWidthCursor >= longTextField->charPerLine)
+    //     {
+    //         longTextField->currentWidthCursor = 0;
+    //         longTextField->currentHeightCursor++;
+    //     }
+
+    //     temp++;
+    // }
+
+    //从内容填充到显示
+    if (longTextField->displayHeightPointer > longTextField->maxHeight - longTextField->height)
+    {
+        longTextField->displayHeightPointer = longTextField->maxHeight - longTextField->height;
+    }
+
+    if (longTextField->displayHeightPointer < 0)
+    {
+        longTextField->displayHeightPointer = 0;
+    }
+
+    int i, j = 0;
+    for (i = longTextField->displayHeightPointer * displaySheet->width; i < (longTextField->displayHeightPointer + displaySheet->height) * displaySheet->width; i++)
+    {
+        // if (i == 100)
+        // {
+        //     break;
+        // }
+        longTextField->displayVram[j] = longTextField->contentVram[i];
+        j++;
+    }
+
+    // fillInSheet(displaySheet, 0, 0, 100, 100, COL8_000000);
+    // setLabelText(statusLabel, "f", COL8_000000);
+
+    // char a = '2';
+    // putSingleChar(longTextField->displayVram, width - 2, 0, 0, a, COL8_000000);
+
+    // printInSheet(displaySheet, 0, 32, temp, COL8_000000);
+    // putSingleChar(longTextField->displaySheet, width - 2, 0, 0, 'X', COL8_000000);
+    updateSheet(displaySheet);
+
+    updateIndexMapAndActionMap(longTextField->sheet);
+    fillVramByIndexMap(longTextField->sheet);
+    updateSheet(longTextField->sheet);
 }

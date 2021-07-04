@@ -48,6 +48,7 @@ void initMemoryManage(struct MemoryManager *memoryManager)
     // initMemoryManager(memoryManager, 0x00400000, memoryTotal - 1);
 
     initMemoryManager(memoryManager, 0x00400000, 0x00400000 + 16 * 1024 * 1024 - 1);
+
     // char s[32];
     // sprintf(s, "%u", memoryTotal);
     // fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 0, getBootInfo()->screenX, 16);
