@@ -206,13 +206,14 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
     // struct Sheet *maxButton = createSubsheetToTop(buttonSheet, 24, 0, 8, 8);
     // initButtonCircle(maxButton, 0, 0, COL8_0000FF);
     // updateSheet(maxButton);
-    updateSheet(backgroundOfButtonSheet);
-    updateSheet(buttonSheet);
+
+    // updateSheet(backgroundOfButtonSheet);
+    // updateSheet(buttonSheet);
 
     setFixedTop(statusSheet);
     updateIndexMapAndActionMap(windowSheet);
     fillVramByIndexMap(windowSheet);
-    updateSheet(windowSheet);
+    // updateSheet(windowSheet);
 
     //标题
     int labelX = width / 2 - getStringSize(title) * 8 / 2;
@@ -232,7 +233,7 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
     window->title = title;
 
     titleSheet->fatherWindow = window;
-    updateSheet(windowSheet);
+    // updateSheet(windowSheet);
 
     //添加事件
     window->sheet->systemActionManager = allocaMemory(getMemoryManager(), sizeof(struct ActionManager));

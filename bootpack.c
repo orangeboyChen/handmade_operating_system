@@ -28,15 +28,39 @@ void HariMain(void)
 	initMouseCursorSheet(rootSheet);
 	initDesktop(rootSheet);
 	struct Window *fatherWindow = createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// struct Button *btn = createButton(fatherWindow->sheet, 6, 20, 80, 20, "button");
-	// struct TextField *tfd = createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
+	struct Button *btn = createButton(fatherWindow->sheet, 6, 20, 80, 20, "button");
+	struct TextField *tfd = createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
+	// createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
+	// createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
+	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
+	setFixedBottom(statusLabel);
+
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
+
+	// createSubsheetToTop(rootSheet, 60, 60, 150, 100);
+	// // createSubsheetToTop(rootSheet, 60, 60, 150, 100);
+	// createSubsheetToTop(rootSheet, 60, 60, 150, 100);
+	// createSubsheetToTop(rootSheet, 60, 60, 150, 100);
+	// createSubsheetToTop(rootSheet, 60, 60, 150, 100);
+	// struct Sheet *s = createSubsheetToTop(rootSheet, 60, 60, 150, 100);
+	// setLabelText(statusLabel, "---", COL8_FFFFFF);
+	// struct Window *w = createWindow(rootSheet, 60, 60, 150, 100, "Father1");
 
 	// struct Window *win = createWindow(rootSheet, 30, 30, 100, 60, "Father");
 	// struct Window *win2 = createWindow(rootSheet, 60, 60, 200, 60, "Fatheraaa");
 
 	// releaseWindow(fatherWindow);
-	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
-	setFixedBottom(statusLabel);
 
 	init_pit();
 	initKeyboard();
@@ -47,7 +71,7 @@ void HariMain(void)
 	initSystemTimerManager();
 	struct Task *task_a = initTask(memoryManager);
 	systemFifo.task = task_a;
-	runTask(task_a, 1, 100);
+	runTask(task_a, 1, 2);
 
 	// struct Task *task_b[5];
 	// for (i = 0; i < 5; i++)

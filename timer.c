@@ -32,6 +32,7 @@ unsigned int setTimer(struct TimerManager *timerManager, unsigned long countdown
     }
     // setLabelText(statusLabel, "222", COL8_000000);
 
+    // return (timer - timerManager->timerStore) / sizeof(struct Timer) + 1;
     return timer->timerId;
 }
 
@@ -58,6 +59,15 @@ struct TimerManager *createTimerManager(struct Fifo *fifo)
 struct TimerManager *initSystemTimerManager()
 {
     struct Fifo *systemTimerManagerFifo = allocaMemory(getMemoryManager(), sizeof(struct Fifo));
+    initFifo(systemTimerManagerFifo);
+    // char s[32];
+    // sprintf(s, "%d", systemTimerManagerFifo);
+    // setLabelText(statusLabel, s, COL8_FFFFFF);
+
+    if (systemTimerManagerFifo == NULL)
+    {
+        return NULL;
+    }
     systemTimerManager = createTimerManager(systemTimerManagerFifo);
     return systemTimerManager;
 }
@@ -131,6 +141,8 @@ void onSystemTimerTick()
 
 void stopTimer(struct TimerManager *timerManager, unsigned int timerId)
 {
+    // struct Timer *timer = timerManager->timerStore + timerId * sizeof(struct Timer);
+    // timer->isUsing = false;
     timerManager->timerStore[timerId].isUsing = false;
 }
 

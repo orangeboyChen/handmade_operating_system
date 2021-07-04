@@ -43,9 +43,10 @@ void onBackgroundClick()
 
 struct Sheet *createSubsheetToTop(struct Sheet *fatherSheet, short x, short y, short width, short height)
 {
-    return createSubsheetToTopWithVram(fatherSheet, x, y, width, height, allocaMemory(getMemoryManager(), width * height));
+    return createSubsheetToTopWithVram(fatherSheet, x, y, width, height, allocaMemory(getMemoryManager(), sizeof(char) * width * height));
 }
 
+// int i = 0;
 struct Sheet *createSubsheetToTopWithVram(struct Sheet *fatherSheet, short x, short y, short width, short height, char *vram)
 {
     struct Sheet *newSheet = allocaMemory(getMemoryManager(), sizeof(struct Sheet));
@@ -56,6 +57,11 @@ struct Sheet *createSubsheetToTopWithVram(struct Sheet *fatherSheet, short x, sh
     newSheet->vram = vram;
     newSheet->indexMap = allocaMemory(getMemoryManager(), width * height * sizeof(int));
     newSheet->actionMap = allocaMemory(getMemoryManager(), width * height * sizeof(int));
+
+    // if (newSheet == NULL || newSheet->indexMap == NULL || newSheet->actionMap == NULL)
+    // {
+    //     return NULL;
+    // }
 
     //按位存储节省空间
     newSheet->updateMap = allocaMemory(getMemoryManager(), (width * height - 1) / sizeof(char) + 1 + 1);

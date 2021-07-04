@@ -8,6 +8,7 @@
 #include "common.h"
 
 #define MEMMAN_ADDR 0x003c0000
+#define MEMORY_BLOCK 8192
 struct MemoryBlock
 {
     unsigned int addrFrom;
@@ -23,7 +24,7 @@ struct MemoryBlock
 struct MemoryManager
 {
     struct MemoryBlock *firstBlock;
-    struct MemoryBlock blocks[2048];
+    struct MemoryBlock blocks[MEMORY_BLOCK];
 };
 
 void initMemoryManage(struct MemoryManager *memoryManager);

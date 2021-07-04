@@ -60,9 +60,9 @@ void calcMain()
     struct Button *button0 = createButton(fatherWindow2->sheet, 45, 110, 40, 20, "0");
     button0->sheet->userActionManager->onClick = &onButton0Click;
 
-    char s[32];
-    sprintf(s, "%dMb", getUnusedMemoryTotal(getMemoryManager()) / (1024 * 1024));
-    setLabelText(statusLabel, s, COL8_000000);
+    // char s[32];
+    // sprintf(s, "%dMb", getUnusedMemoryTotal(getMemoryManager()) / (1024 * 1024));
+    // setLabelText(statusLabel, s, COL8_000000);
 
     struct Button *buttonPlus = createButton(fatherWindow2->sheet, 129, 44, 40, 20, "+");
     buttonPlus->sheet->userActionManager->onClick = &onButtonPlusClick;
@@ -234,8 +234,17 @@ void operate()
 
 void handleOperator(unsigned int type)
 {
-    isResult = false;
-    lastNum = String2Int(currentNumStr);
+    if (isResult)
+    {
+        lastNum = total;
+        total = 0;
+        lastOperator = EQUAL;
+    }
+    else
+    {
+        lastNum = String2Int(currentNumStr);
+    }
+
     operate();
     switch (type)
     {
@@ -255,6 +264,7 @@ void handleOperator(unsigned int type)
     lastOperator = type;
     // sprintf(currentNumStr, "%d", total);
     strcpy(currentNumStr, "");
+    isResult = false;
 
     char s[32];
     sprintf(s, "%d", total);

@@ -132,7 +132,7 @@ struct MemoryBlock *cutBlock(struct MemoryBlock **lastReturnBlock, unsigned int 
     int de = 0;
     while (leftMemory > 0)
     {
-        // de++;
+        de++;
         // if (de == 1)
         // {
         //     char *s;
@@ -144,14 +144,14 @@ struct MemoryBlock *cutBlock(struct MemoryBlock **lastReturnBlock, unsigned int 
 
         int blockType = getMaxBlockTypeInMemory(manager, leftMemory);
 
-        de++;
-        if (toAddr - fromAddr + 1 == 1 && de == 1)
-        {
-            char s[32];
-            sprintf(s, "%u %u", leftMemory, blockType);
-            fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 0, getBootInfo()->screenX, 16 * 1);
-            putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s);
-        }
+        // de++;
+        // if (toAddr - fromAddr + 1 == 1 && de == 1)
+        // {
+        //     char s[32];
+        //     sprintf(s, "%u %u", leftMemory, blockType);
+        //     fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 0, getBootInfo()->screenX, 16 * 1);
+        //     putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s);
+        // }
 
         struct MemoryBlock *block = getUnusedBlock(manager);
         block->addrFrom = currentFromAddr;
@@ -159,19 +159,33 @@ struct MemoryBlock *cutBlock(struct MemoryBlock **lastReturnBlock, unsigned int 
         block->blockType = blockType;
         block->isUsing = 1;
 
-        if (lastBlock != NULL)
-        {
-            lastBlock->nextBlock = block;
-        }
+        // if ((block == 0) == true)
+        // {
+        //     char s[32];
+        //     sprintf(s, "%d %d null2", block == 0, firstBlock);
+        //     setLabelText(statusLabel, s, COL8_FFFFFF);
+        // }
 
         if (firstBlock == NULL)
         {
-            firstBlock = block;
+            if (block != NULL)
+            {
+                firstBlock = block;
+            }
+
+            // char s[32];
+            // sprintf(s, "%d %d null", block == 0, firstBlock);
+            // setLabelText(statusLabel, s, COL8_FFFFFF);
 
             // char *s;
             // sprintf(s, "%u %u", getMemoryManager()->firstBlock->addrFrom, getMemoryManager()->firstBlock->addrTo);
             // fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 0, getBootInfo()->screenX, 32);
             // putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s);
+        }
+
+        if (lastBlock != NULL)
+        {
+            lastBlock->nextBlock = block;
         }
 
         lastBlock = block;
@@ -195,6 +209,13 @@ struct MemoryBlock *cutBlock(struct MemoryBlock **lastReturnBlock, unsigned int 
     // sprintf(s, "%u/%u %u", (*lastReturnBlock)->addrFrom, (*lastReturnBlock)->addrTo, (*lastReturnBlock)->requestSize);
     // fillBox(getBootInfo()->vram, getBootInfo()->screenX, COL8_000000, 0, 0, getBootInfo()->screenX, 16);
     // putfonts8_asc(getBootInfo()->vram, getBootInfo()->screenX, 0, 0, COL8_FFFFFF, s);
+
+    // if (firstBlock == NULL)
+    // {
+    //     char s[32];
+    //     sprintf(s, "NULL%d", de);
+    //     setLabelText(statusLabel, s, COL8_FFFFFF);
+    // }
 
     return firstBlock;
 }
@@ -232,8 +253,14 @@ unsigned int allocaMemory(struct MemoryManager *memoryManager, unsigned int size
 
     if (preferBlock->isUsing != 1)
     {
+        // char s[32];
+        // sprintf(s, "Memory filled. Left %d byte. FB %X", getUnusedMemoryTotal(getMemoryManager()), memoryManager->firstBlock);
+        // setLabelText(statusLabel, s, COL8_FFFFFF);
         return NULL;
     }
+    // char s[32];
+    // sprintf(s, "Left %d byte.", getUnusedMemoryTotal(getMemoryManager()));
+    // setLabelText(statusLabel, s, COL8_FFFFFF);
 
     // char *s;
     // sprintf(s, "%u %u", preferBlock->addrFrom, preferBlock->nextBlock->addrTo);
@@ -263,6 +290,10 @@ unsigned int allocaMemory(struct MemoryManager *memoryManager, unsigned int size
         else
         {
             memoryManager->firstBlock = cutBlock(&lastCutBlock, preferBlock->addrFrom, newAddrFrom - 1);
+            if (memoryManager->firstBlock == NULL)
+            {
+                // setLabelText(statusLabel, "danger", COL8_FFFFFF);
+            }
         }
         lastCutBlock->nextBlock = preferBlock;
         preferBlock->addrFrom = newAddrFrom;
@@ -321,7 +352,7 @@ struct MemoryBlock *getUnusedBlock(struct MemoryManager *memoryManager)
 {
     int i;
 
-    for (i = 0; i < 2048; i++)
+    for (i = 0; i < MEMORY_BLOCK; i++)
     {
         if (memoryManager->blocks[i].isUsing == 0)
         {
@@ -329,6 +360,7 @@ struct MemoryBlock *getUnusedBlock(struct MemoryManager *memoryManager)
             return &memoryManager->blocks[i];
         }
     }
+    // setLabelText(statusLabel, "No free block.", COL8_FFFFFF);
     return NULL;
 }
 

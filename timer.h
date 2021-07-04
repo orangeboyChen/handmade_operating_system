@@ -13,7 +13,7 @@ struct Timer
     void (*onTimerStopCallback)();
     struct Timer *nextTimer;
     unsigned int timerId;
-    char isUsing;
+    unsigned int isUsing;
 };
 
 struct TimerManager
