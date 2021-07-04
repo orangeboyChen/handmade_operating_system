@@ -128,7 +128,7 @@ void analyseKeyborardData(unsigned int key)
                 keyName = keyTable0[key];
                 if ('A' <= keyName && keyName <= 'Z')
                 {
-                    keyName += 0x32;
+                    keyName += 0x20;
                 }
             }
 
@@ -156,7 +156,10 @@ void analyseKeyborardData(unsigned int key)
             }
             else
             {
-                keyName = keyTable0[key] + 0x20;
+                if ('A' <= keyName && keyName <= 'Z')
+                {
+                    keyName += 0x20;
+                }
             }
             handleKeyUp(keyName, key);
         }

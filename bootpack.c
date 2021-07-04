@@ -30,41 +30,6 @@ void HariMain(void)
 	initMouseCursorSheet(rootSheet);
 	initDesktop(rootSheet);
 	statusLabel = createLabel(rootSheet, 0, 32, 320, 16, "", COL8_FFFFFF);
-	// setFixedBottom(statusLabel);
-
-	// struct Button *btn = createButton(fatherWindow->sheet, 6, 20, 80, 20, "button");
-	// struct TextField *tfd = createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
-	// createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
-	// createTextField(fatherWindow->sheet, 6, 50, 80, 20, "Ha");
-
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-	// createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-
-	// createSubsheetToTop(rootSheet, 60, 60, 150, 100);
-	// // createSubsheetToTop(rootSheet, 60, 60, 150, 100);
-	// createSubsheetToTop(rootSheet, 60, 60, 150, 100);
-	// createSubsheetToTop(rootSheet, 60, 60, 150, 100);
-	// createSubsheetToTop(rootSheet, 60, 60, 150, 100);
-	// struct Sheet *s = createSubsheetToTop(rootSheet, 60, 60, 150, 100);
-	// setLabelText(statusLabel, "---", COL8_FFFFFF);
-	// struct Window *w = createWindow(rootSheet, 60, 60, 150, 100, "Father1");
-
-	// struct Window *win = createWindow(rootSheet, 30, 30, 100, 60, "Father");
-	// struct Window *win2 = createWindow(rootSheet, 60, 60, 200, 60, "Fatheraaa");
-
-	// releaseWindow(fatherWindow);
-
-	// setLabelText(statusLabel, 0x7f, COL8_000000);
 
 	init_pit();
 	initKeyboard();
@@ -115,6 +80,8 @@ void HariMain(void)
 	task_c->tss.fs = 1 * 8;
 	task_c->tss.gs = 1 * 8;
 	runTask(task_c, 1, 2);
+
+	setSystemTimer(100, &textCursorTick);
 
 	while (1)
 	{
@@ -250,21 +217,11 @@ void HariMain(void)
 	}
 }
 
-void task_b_main()
+void textCursorTick()
 {
-	while (true)
+	if (windowsManager.activeTextField != NULL)
 	{
-		// setLabelText(statusLabel, "taskb==", COL8_000000);
-		// io_hlt();
-
-		struct FifoItem *item = getInFifo(&systemFifo);
-
-		// // io_hlt();
-
-		if (item->type == FIFO_TYPE_TIMER)
-		{
-			void (*callback)() = item->pointer;
-			callback();
-		}
 	}
+
+	setSystemTimer(100, &textCursorTick);
 }

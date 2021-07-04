@@ -2,9 +2,11 @@
 
 void testMain()
 {
-    struct Window *fatherWindow = createWindow(rootSheetManager.sheet, 60, 60, 150, 100, "Father1");
+    struct Window *fatherWindow = createWindow(rootSheetManager.sheet, 60, 60, 250, 110, "TextField");
 
-    struct LongTextField *ltfd = createLongTextField(fatherWindow->sheet, 6, 20, 130, 50, 300, "abcdefghijklmnopqabcdefghijklmnopqabcdefghijklmnopqabcdefghijklmnopqabcdefghijklmnopqabcdefghijklmnopq");
+    // createWindow(fatherWindow->sheet, 0, 30, 300, 300, "1234");
+
+    struct LongTextField *ltfd = createLongTextField(fatherWindow->sheet, 6, 20, 242, 80, 300, "");
 
     while (true)
     {

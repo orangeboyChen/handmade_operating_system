@@ -71,9 +71,12 @@ void onSystemTextfieldKeyUp(struct Sheet *this, char c, unsigned int raw);
 
 struct LongTextField *createLongTextField(struct Sheet *fatherSheet, short x, short y, short width, short height, short maxHeight, char *content);
 void onLongTextFieldUp(struct Sheet *this);
-void updateLongTextField(struct LongTextField *longTextField);
+void updateMoveLongTextField(struct LongTextField *longTextField);
 void onLongTextFieldDown(struct Sheet *this);
 void onLongTextFieldKeyDown(struct Sheet *this, char c, unsigned int raw);
 void onLongTextFieldKeyUp(struct Sheet *this, char c, unsigned int raw);
 void onLongTextFieldClick();
+void putSingleCharInLongTextField(struct LongTextField *longTextField, char c);
+void moveLongTextFieldToBottom(struct LongTextField *longTextField);
+void deleteSingleCharInLongTextField(struct LongTextField *longTextField);
 #endif

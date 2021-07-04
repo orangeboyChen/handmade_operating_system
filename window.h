@@ -40,6 +40,8 @@ struct WindowsManager
     struct ActiveSheetItem *firstActiveSheet;
     struct ActiveSheetItem *lastActiveSheet;
     struct ActiveSheetItem activeSheetItemStore[ACTIVE_SHEET_ITEM_TOTAL];
+
+    struct Sheet *activeTextField;
 };
 
 extern struct WindowsManager windowsManager;

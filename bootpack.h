@@ -20,7 +20,8 @@ struct BootInfo
 
 struct BootInfo *getBootInfo();
 struct MemoryManager *getMemoryManager();
-void task_b_main();
+
+void textCursorTick();
 
 extern struct Sheet *statusLabel;
 

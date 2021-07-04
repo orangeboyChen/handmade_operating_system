@@ -81,10 +81,16 @@ struct Sheet *createSubsheetToTopWithVram(struct Sheet *fatherSheet, short x, sh
 
     //整理父图层，更新更新数组
     int j;
-    for (i = y; i < y + height; i++)
+    int toHeight = y + height >= fatherSheet->height ? fatherSheet->height : y + height;
+    int toWidth = x + width >= fatherSheet->width ? fatherSheet->width : x + width;
+    for (i = y; i < toHeight; i++)
     {
-        for (j = x; j < x + width; j++)
+        for (j = x; j < toWidth; j++)
         {
+            if (i >= fatherSheet->height || j >= fatherSheet->width)
+            {
+                continue;
+            }
             unsigned int fatherIndex = i * fatherSheet->width + j;
             // y * fatherSheet->width + x
             //(y + i) * fatherSheet->width + x + j

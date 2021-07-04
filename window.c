@@ -199,21 +199,9 @@ struct Window *createWindow(struct Sheet *fatherSheet, short x, short y, short w
     initButtonCircle(closeBtn, 0, 0, COL8_FF0000);
     updateSheet(closeBtn);
 
-    // struct Sheet *minButton = createSubsheetToTop(buttonSheet, 12, 0, 8, 8);
-    // initButtonCircle(minButton, 0, 0, COL8_00FF00);
-    // updateSheet(minButton);
-
-    // struct Sheet *maxButton = createSubsheetToTop(buttonSheet, 24, 0, 8, 8);
-    // initButtonCircle(maxButton, 0, 0, COL8_0000FF);
-    // updateSheet(maxButton);
-
-    // updateSheet(backgroundOfButtonSheet);
-    // updateSheet(buttonSheet);
-
     setFixedTop(statusSheet);
     updateIndexMapAndActionMap(windowSheet);
     fillVramByIndexMap(windowSheet);
-    // updateSheet(windowSheet);
 
     //标题
     int labelX = width / 2 - getStringSize(title) * 8 / 2;
@@ -332,7 +320,7 @@ void fillWindowBackground(struct Window *window, unsigned int color)
 
     window->titleSheet->attribute[0] = color;
     int labelX = width / 2 - getStringSize(window->title) * 8 / 2;
-    if (labelX <= 15)
+    if (labelX <= 25)
     {
         setLabelText(window->titleSheet, "...", COL8_000000);
     }
