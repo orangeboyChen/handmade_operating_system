@@ -228,7 +228,7 @@ void switchTask()
     }
     addTask(currentTask);
 
-    if (taskManager->currentTask != currentTask)
+    if (taskManager->currentTask != currentTask || taskManager->currentTask->sel != currentTask->sel)
     {
         taskManager->currentTask = currentTask;
         farjmp(0, currentTask->sel);

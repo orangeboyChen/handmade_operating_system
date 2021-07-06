@@ -217,11 +217,61 @@ void HariMain(void)
 	}
 }
 
+static unsigned int tick = false;
 void textCursorTick()
 {
-	if (windowsManager.activeTextField != NULL)
+
+	setSystemTimer(50, &textCursorTick);
+	tick = !tick;
+	struct Sheet *newTextFieldSheet = NULL;
+
+	struct ActiveSheetItem *activeSheetItem = windowsManager.lastActiveSheet;
+
+	// char s[32];
+	// sprintf(s, "%d %d", windowsManager.firstActiveSheet, tick);
+	// setLabelText(statusLabel, s, COL8_000000);
+
+	while (activeSheetItem != NULL)
 	{
+		// if (activeSheetItem->sheet->attribute[5] != 0)
+		// {
+		// 	char s[32];
+		// 	sprintf(s, "%d %d", activeSheetItem->sheet->attribute[5], tick);
+		// 	setLabelText(statusLabel, s, COL8_000000);
+		// }
+
+		if (activeSheetItem->sheet->attribute[5] == LONGTEXTFIELD)
+		{
+			newTextFieldSheet = activeSheetItem->sheet;
+			break;
+		}
+
+		activeSheetItem = activeSheetItem->previousSheet;
 	}
 
-	setSystemTimer(100, &textCursorTick);
+	// if (newTextFieldSheet == NULL)
+	// {
+	// 	return;
+	// }
+
+	if (newTextFieldSheet != windowsManager.activeTextField)
+	{
+		if (windowsManager.activeTextField != NULL && windowsManager.activeTextField->systemActionManager != NULL &&
+			windowsManager.activeTextField->systemActionManager->onTextCursorTick != NULL)
+		{
+
+			windowsManager.activeTextField->systemActionManager->onTextCursorTick(windowsManager.activeTextField, false);
+		}
+
+		windowsManager.activeTextField = newTextFieldSheet;
+	}
+
+	if (windowsManager.activeTextField != NULL && windowsManager.activeTextField->systemActionManager != NULL &&
+		windowsManager.activeTextField->systemActionManager->onTextCursorTick != NULL)
+	{
+		// char s[32];
+		// sprintf(s, "%d", tick);
+		// setLabelText(statusLabel, s, COL8_000000);
+		windowsManager.activeTextField->systemActionManager->onTextCursorTick(windowsManager.activeTextField, tick);
+	}
 }

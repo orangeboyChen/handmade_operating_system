@@ -22,6 +22,8 @@ struct ActionManager
 
     void (*onKeyPress)(struct Sheet *this, char c, unsigned int raw);
     void (*onKeyUp)(struct Sheet *this, char c, unsigned int raw);
+
+    void (*onTextCursorTick)(struct Sheet *this, unsigned int tick);
 };
 
 void handleOnClickOfRoot(unsigned int x, unsigned int y);
