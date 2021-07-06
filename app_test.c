@@ -1,4 +1,5 @@
 #include "app_test.h"
+#include "widget_longTextField.h"
 
 void testMain()
 {
@@ -6,7 +7,7 @@ void testMain()
 
     // createWindow(fatherWindow->sheet, 0, 30, 300, 300, "1234");
 
-    struct LongTextField *ltfd = createLongTextFieldWithColor(fatherWindow->sheet, 6, 20, 242, 80, 300, "55", COL8_000000, COL8_FFFFFF);
+    struct LongTextField *ltfd = createLongTextFieldWithColor(fatherWindow->sheet, 6, 20, 60, 80, 3000, "2345923850328-5893240-583240-9583204958234523234", COL8_000000, COL8_FFFFFF);
 
     while (true)
     {
