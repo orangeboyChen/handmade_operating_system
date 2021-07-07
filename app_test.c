@@ -7,7 +7,7 @@ void testMain()
 
     // createWindow(fatherWindow->sheet, 0, 30, 300, 300, "1234");
 
-    struct LongTextField *ltfd = createLongTextFieldWithColor(fatherWindow->sheet, 6, 20, 60, 80, 3000, "2345923850328-5893240-583240-9583204958234523234", COL8_000000, COL8_FFFFFF);
+    struct LongTextField *ltfd = createLongTextFieldWithColor(fatherWindow->sheet, 6, 20, 224, 80, 3000, "2345923850328-5893240-583240-9583204958234523234", COL8_000000, COL8_FFFFFF);
 
     while (true)
     {

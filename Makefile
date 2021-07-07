@@ -1,6 +1,6 @@
 OBJS_BOOTPACK = bootpack.obj naskfunc.obj hankaku.obj sheet.obj memory.obj interupt.obj window.obj \
 graphic.obj utils.obj dsctbl.obj fifo.obj io.obj task.obj widget.obj timer.obj action.obj app_calc.obj app_taskManager.obj \
-app_test.obj widget_longTextField.obj
+app_test.obj widget_longTextField.obj app_console.obj
 
 TOOLPATH = ../z_tools/
 INCPATH  = ../z_tools/haribote/

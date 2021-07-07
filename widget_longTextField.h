@@ -54,4 +54,5 @@ int getCharIndexInLongTextFieldContent(struct LongTextField *longTextField, unsi
 void getCursorPositionByCharIndexInLongTextField(struct LongTextField *longTextField, unsigned int charIndex, int *resultArray);
 
 void putSingleCharInLongTextFieldByCurrentCursor(struct LongTextField *longTextField, char c);
+void putStringInLongTextField(struct LongTextField *longTextField, char *str);
 #endif

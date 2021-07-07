@@ -803,3 +803,41 @@ void moveLongTextFieldToCursorHeightBottom(struct LongTextField *longTextField)
     longTextField->displayHeightPointer = longTextField->currentCursorHeight * 16 - longTextField->displaySheet->height + 16;
     updateLongTextFieldDisplay(longTextField);
 }
+
+void putStringInLongTextField(struct LongTextField *longTextField, char *str)
+{
+    updateLongTextFieldCursorChar(longTextField);
+    unsigned int lastContentSize = getStringSize(longTextField->content);
+    strcat(longTextField->content, str);
+
+    struct Sheet *displaySheet = longTextField->displaySheet;
+
+    char *content = longTextField->content + lastContentSize;
+    while (*content != '\0')
+    {
+        char c = *content;
+        if (c == '\n')
+        {
+            longTextField->currentDisplayHeight++;
+            longTextField->currentDisplayWidth = 0;
+        }
+        else
+        {
+            putSingleChar(longTextField->contentVram, displaySheet->width, longTextField->currentDisplayWidth * 8, longTextField->currentDisplayHeight * 16, c, longTextField->fontColor);
+            updatePartOfLongTextFieldDisplay(longTextField, longTextField->currentDisplayWidth * 8, longTextField->currentDisplayHeight * 16);
+
+            longTextField->currentDisplayWidth++;
+            if (longTextField->currentDisplayWidth >= longTextField->charPerLine)
+            {
+                longTextField->currentDisplayWidth = 0;
+                longTextField->currentDisplayHeight++;
+            }
+        }
+        content++;
+    }
+
+    longTextField->currentCursorHeight = longTextField->currentDisplayHeight;
+    longTextField->currentCursorWidth = longTextField->currentDisplayWidth;
+
+    // showLongTextFieldCursor(longTextField);
+}

@@ -7,6 +7,7 @@
 #include "app_calc.h"
 #include "app_taskManager.h"
 #include "app_test.h"
+#include "app_console.h"
 
 struct Sheet *statusLabel;
 int i = 0;
@@ -80,6 +81,18 @@ void HariMain(void)
 	task_c->tss.fs = 1 * 8;
 	task_c->tss.gs = 1 * 8;
 	runTask(task_c, 1, 2);
+
+	struct Task *task_d;
+	task_d = allocaTask();
+	task_d->tss.esp = allocaMemory(memoryManager, 64 * 1024) + 64 * 1024 - 8;
+	task_d->tss.eip = (int)&consoleMain;
+	task_d->tss.es = 1 * 8;
+	task_d->tss.cs = 2 * 8;
+	task_d->tss.ss = 1 * 8;
+	task_d->tss.ds = 1 * 8;
+	task_d->tss.fs = 1 * 8;
+	task_d->tss.gs = 1 * 8;
+	runTask(task_d, 1, 2);
 
 	setSystemTimer(100, &textCursorTick);
 
